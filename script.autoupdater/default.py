@@ -109,19 +109,17 @@ class ProcHandler(ProcessEvent):
 
 	def process_IN_MOVE_SELF(self, event):
 		log(event)
-		#TODO: when moved outside the top watched dir: wm.rm_watch(event.wd, rec=True)
-		return
+		if event.path.endswith("invalided-path"): #moved outside
+			self.wm.rm_watch(event.wd, rec=True)
+			
+	def process_IN_IGNORED(self, event):
+		log(event)
 
 	def process_IN_MOVED_FROM(self, event):
-		# INSIDE to OUTSIDE #includes move to basket
-		# INSIDE to INSIDE  #includes renaming
 		log(event)
-		# Not possible to know if a folder was empty because its already been moved. So just do the clean
 		self.xbmch.clean()
 		
 	def process_IN_MOVED_TO(self, event):
-		# OUTSIDE to INSIDE
-		# INSIDE  to INSIDE
 		log(event)
 		path = event.path + "/" + event.name
 		if os.path.isdir(path) and len(os.listdir(path)) == 0:
