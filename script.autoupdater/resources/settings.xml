@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<category label="30000">
+		<setting id="autoexec"	type="bool" 	label="30001" default="true"/>
+		<setting id="delay"		type="number"	label="30002" default="1"/>
+		<setting id="clean"		type="bool" 	label="30003" default="false"/>
+	</category>
+	<category label="30100">
+		<setting id="path1"		type="folder"	source="video" label="30101" default=""/>
+		<setting id="path2"		type="folder"	source="video" label="30102" default=""/>
+		<setting id="path3"		type="folder"	source="video" label="30103" default=""/>
+		<setting id="path4"		type="folder"	source="video" label="30104" default=""/>
+		<setting id="path5"		type="folder"	source="video" label="30105" default=""/>
+		<setting id="path6"		type="folder"	source="video" label="30106" default=""/>
+	</category>
+</settings><setting type="sep"/>
