@@ -55,7 +55,6 @@ class Worker(Thread):
 				while b():
 					time.sleep(1)
 
-
 class Xbmc:
 	def __init__(self):
 		self.worker = Worker()
@@ -89,7 +88,6 @@ class Xbmc:
 				self.worker = Worker()
 				self.worker.queue2( self.__cleanf, self.__isCleaningf )
 				self.worker.start()
-
 
 class ProcHandler(ProcessEvent):
 	def __init__(self, wm, xbmch):
@@ -126,7 +124,6 @@ class ProcHandler(ProcessEvent):
 			return 
 		self.xbmch.scan()
 		
-
 def log(event):
 	v = (event.event_name, event.is_dir, event.mask, event.name, event.path)
 	print ADDON_ID + ": event_name: %s\t   is_dir: %s\t   mask: %s\t   name: %s\t   path: %s" % v
@@ -155,11 +152,5 @@ def main():
 	while True:
 		time.sleep(1)
 		
-
 if ( __name__ == "__main__" ):
 	main()
-
-
-
-
-
