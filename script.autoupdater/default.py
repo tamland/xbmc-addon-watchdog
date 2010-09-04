@@ -129,7 +129,7 @@ class ProcHandler(ProcessEvent):
 
 def log(event):
 	v = (event.event_name, event.is_dir, event.mask, event.name, event.path)
-	print "event_name: %s\t   is_dir: %s\t   mask: %s\t   name: %s\t   path: %s" % v
+	print ADDON_ID + ": event_name: %s\t   is_dir: %s\t   mask: %s\t   name: %s\t   path: %s" % v
 
 def main():
 	aeh = AutoexecHandler()
