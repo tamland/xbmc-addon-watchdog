@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="script.autoupdater"
        name="Auto Updater"
-       version="0.1"
+       version="0.5"
        provider-name="takoi">
   <requires>
     <import addon="xbmc.python" version="1.0"/>

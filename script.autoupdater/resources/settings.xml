@@ -12,5 +12,8 @@
 		<setting id="path4"		type="folder"	source="video" label="30104" default=""/>
 		<setting id="path5"		type="folder"	source="video" label="30105" default=""/>
 		<setting id="path6"		type="folder"	source="video" label="30106" default=""/>
+		<setting id="path7"		type="folder"	source="video" label="30107" default=""/>
+		<setting id="path8"		type="folder"	source="video" label="30108" default=""/>
+		<setting id="path9"		type="folder"	source="video" label="30109" default=""/>
 	</category>
 </settings><setting type="sep"/>
