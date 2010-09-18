@@ -156,7 +156,7 @@ def main():
 	if len(PATHS_VIDEO) > 0:
 		newInstance("video", PATHS_VIDEO, CLEAN_VIDEO)
 	if len(PATHS_MUSIC) > 0:
-		newInstance("video", PATHS_MUSIC, CLEAN_MUSIC)
+		newInstance("music", PATHS_MUSIC, CLEAN_MUSIC)
 	
 	
 	#keep self alive or else python will hang when exiting xbmc
