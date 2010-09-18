@@ -3,11 +3,10 @@
 	<string id="30000">General</string>
 	<string id="30001">Run script on startup</string>
 	<string id="30002">Delay before updating library</string>
-	<string id="30003">Clean Video Library when files are moved/deleted</string>
-    <string id="30004">Clean Music Library when files are moved/deleted</string>
-    <string id="30005"> ** Warning: All files on removable media will be cleared **</string>
+	<string id="30003">Clean Library when files are moved/deleted
+    - All videos on removable media will be cleared</string>
     
-    <string id="30100">Video locations</string>
+    <string id="30100">Media locations</string>
 	<string id="30101">Video source 1</string>
 	<string id="30102">Video source 2</string>
 	<string id="30103">Video source 3</string>
@@ -17,15 +16,4 @@
 	<string id="30107">Video source 7</string>
 	<string id="30108">Video source 8</string>
 	<string id="30109">Video source 9</string>
-	
-	<string id="30200">Audio locations</string>
-	<string id="30201">Music source 1</string>
-	<string id="30202">Music source 2</string>
-	<string id="30203">Music source 3</string>
-	<string id="30204">Music source 4</string>
-	<string id="30205">Music source 5</string>
-	<string id="30206">Music source 6</string>
-	<string id="30207">Music source 7</string>
-	<string id="30208">Music source 8</string>
-	<string id="30209">Music source 9</string>
 </strings>

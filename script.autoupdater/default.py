@@ -9,19 +9,17 @@ FILENAME_THIS = "default.py"
 
 SETTINGS      = xbmcaddon.Addon(id=ADDON_ID)
 DELAY         = math.fabs(int(SETTINGS.getSetting("delay"))) #delay before executing the update function
-AUTOEXEC      = SETTINGS.getSetting("autoexec") in ["true", "True", "1"]
-CLEAN_VIDEO   = SETTINGS.getSetting("vclean") in ["true", "True", "1"]
-CLEAN_MUSIC   = SETTINGS.getSetting("mclean") in ["true", "True", "1"]
+CLEAN         = SETTINGS.getSetting("clean")
+AUTOEXEC      = SETTINGS.getSetting("autoexec")
 
-PATHS_VIDEO = []
-PATHS_MUSIC = []
+PATHS = []
 for i in range(0, 4):
-	pv = SETTINGS.getSetting("vpath" + str(i))
-	pm = SETTINGS.getSetting("mpath" + str(i))
-	if not("" == pv.strip()): PATHS_VIDEO.append(xbmc.translatePath(pv))
-	if not("" == pm.strip()): PATHS_MUSIC.append(xbmc.translatePath(pm))
+	p = SETTINGS.getSetting("path" + str(i))
+	if not("" == p.strip()):
+		PATHS.append(xbmc.translatePath(p))
 
 SETTINGS = None
+
 MASK = EventsCodes.IN_CREATE | EventsCodes.IN_DELETE | EventsCodes.IN_MOVED_TO | EventsCodes.IN_MOVED_FROM |EventsCodes.IN_MOVE_SELF
 
 	
@@ -58,23 +56,21 @@ class Worker(Thread):
 					time.sleep(1)
 
 class Xbmc:
-	def __init__(self, library, clean):
+	def __init__(self):
 		self.worker = Worker()
 		self.worker.start()
-		self.library = library
-		self.doClean = clean
 		
 	def __scanf(self):
-		xbmc.executebuiltin("UpdateLibrary(" + self.library + ")")
+		xbmc.executebuiltin("UpdateLibrary(video)")
 	
 	def __cleanf(self):
-		xbmc.executebuiltin("CleanLibrary(" + self.library + ")")
+		xbmc.executebuiltin("CleanLibrary(video)")
 	
 	def __isScanningf(self):
 		return xbmc.getCondVisibility('Library.IsScanning')
 	
 	def __isCleaningf(self):
-		return xbmc.getCondVisibility('Window.IsActive(10101)') #progressdialog
+		return xbmc.getCondVisibility('Window.IsActive(10101)')
 	
 	def scan(self):
 		if(self.worker.isAlive()):
@@ -85,7 +81,7 @@ class Xbmc:
 			self.worker.start()
 			
 	def clean(self):
-		if self.doClean:
+		if CLEAN:
 			if(self.worker.isAlive()):
 				self.worker.queue2( self.__cleanf, self.__isCleaningf )
 			else:
@@ -132,15 +128,6 @@ def log(event):
 	v = (event.event_name, event.is_dir, event.mask, event.name, event.path)
 	print ADDON_ID + ": event_name: %s\t   is_dir: %s\t   mask: %s\t   name: %s\t   path: %s" % v
 
-def newInstance(library, paths, clean):
-	xbmch = Xbmc(library, clean)
-	wm = WatchManager()
-	phandler = ProcHandler(wm, xbmch)
-	notifier = ThreadedNotifier(wm, phandler)
-	notifier.start()
-	for p in paths:
-		wm.add_watch(p, MASK, rec=True, auto_add=True)
-
 def main():
 	aeh = AutoexecHandler()
 	if AUTOEXEC:
@@ -149,15 +136,17 @@ def main():
 		aeh.remove(ADDON_ID, FILENAME_THIS)
 	aeh = None
 	
-	
-	if len(PATHS_VIDEO) == 0 and len(PATHS_MUSIC) == 0: #nothing to watch
+	if len(PATHS) == 0: #nothing to watch
 		return
-		
-	if len(PATHS_VIDEO) > 0:
-		newInstance("video", PATHS_VIDEO, CLEAN_VIDEO)
-	if len(PATHS_MUSIC) > 0:
-		newInstance("video", PATHS_MUSIC, CLEAN_MUSIC)
 	
+	xbmch = Xbmc()
+	wm = WatchManager()
+	phandler = ProcHandler(wm, xbmch)
+	notifier = ThreadedNotifier(wm, phandler)
+	notifier.start()
+	
+	for p in PATHS:
+		wm.add_watch(p, MASK, rec=True, auto_add=True)
 	
 	#keep self alive or else python will hang when exiting xbmc
 	while True:
