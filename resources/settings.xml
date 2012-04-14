@@ -1,34 +1,4 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-	<category label="30000">
-		<setting id="autoexec"	type="bool" 	label="30001" default="true"/>
-		<setting id="delay"		type="number"	label="30002" default="1"/>
-		
-		<setting id="vclean"	type="bool" 	label="30003" default="false"/>
-		<setting id="mclean"	type="bool" 	label="30004" default="false"/>
-		<setting id="dummy"		type="text" 	label="30005" />
-		
-	</category>
-	<category label="30100">
-		<setting id="vpath1"	type="folder"	source="video" label="30101" default=""/>
-		<setting id="vpath2"	type="folder"	source="video" label="30102" default=""/>
-		<setting id="vpath3"	type="folder"	source="video" label="30103" default=""/>
-		<setting id="vpath4"	type="folder"	source="video" label="30104" default=""/>
-		<setting id="vpath5"	type="folder"	source="video" label="30105" default=""/>
-		<setting id="vpath6"	type="folder"	source="video" label="30106" default=""/>
-		<setting id="vpath7"	type="folder"	source="video" label="30107" default=""/>
-		<setting id="vpath8"	type="folder"	source="video" label="30108" default=""/>
-		<setting id="vpath9"	type="folder"	source="video" label="30109" default=""/>
-	</category>
-	<category label="30200">
-		<setting id="mpath1"	type="folder"	source="music" label="30201" default=""/>
-		<setting id="mpath2"	type="folder"	source="music" label="30202" default=""/>
-		<setting id="mpath3"	type="folder"	source="music" label="30203" default=""/>
-		<setting id="mpath4"	type="folder"	source="music" label="30204" default=""/>
-		<setting id="mpath5"	type="folder"	source="music" label="30205" default=""/>
-		<setting id="mpath6"	type="folder"	source="music" label="30206" default=""/>
-		<setting id="mpath7"	type="folder"	source="music" label="30207" default=""/>
-		<setting id="mpath8"	type="folder"	source="music" label="30208" default=""/>
-		<setting id="mpath9"	type="folder"	source="music" label="30209" default=""/>
-	</category>
-</settings><setting type="sep"/>
+  <setting id="clean" type="bool" label="30001" default="false"/>
+</settings>

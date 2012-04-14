@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="script.autoupdater"
-       name="Auto Updater"
-       version="0.5"
+<addon id="service.watchdog"
+       name="Library watchdog"
+       version="0.1"
        provider-name="takoi">
   <requires>
-    <import addon="xbmc.python" version="1.0"/>
-    <import addon="script.module.pyinotify" version="0.7.1"/>
+    <import addon="xbmc.python" version="2.0"/>
+    <import addon="script.module.simplejson" version="2.0.10"/>
   </requires>
-  <extension point="xbmc.python.script" library="default.py" />
+  <extension point="xbmc.service" start="login" library="default.py"/>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">Auto update library</summary>
-    <description lang="en">Automatically update the video library when new files are added in a media location. Library entries can also be remove or updated when files are deleted/moved, and keep the library in sync with the file system at all times.
-
-By default this script will be executed on startup. If it's the first time using this script you must start it from the Programs menu.
-    </description>
-    <platform>linux</platform>
+    <platform>all</platform>
+    <summary>todo</summary>
+    <description>todo</description>
   </extension>
 </addon>
