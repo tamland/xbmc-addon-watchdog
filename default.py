@@ -109,14 +109,13 @@ if __name__ == "__main__":
   
   xbmc.log("%s: using <%s>" % (ADDON_ID, debugging.get_observer_name()), xbmc.LOGDEBUG)
   
-  dirs = get_media_sources()
-  for item in dirs:
-    item = item.encode('utf-8')
-    if os.path.exists(item):
-      xbmc.log("%s: watching <%s>" % (ADDON_ID, item), xbmc.LOGDEBUG)
-      observer.schedule(event_handler, path=item, recursive=True)
+  for dir in get_media_sources():
+    dir = dir.encode('utf-8')
+    if os.path.exists(dir):
+      xbmc.log("%s: watching <%s>" % (ADDON_ID, dir), xbmc.LOGDEBUG)
+      observer.schedule(event_handler, path=dir, recursive=True)
     else:
-      xbmc.log("%s: not watching <%s>" % (ADDON_ID, item), xbmc.LOGDEBUG)
+      xbmc.log("%s: not watching <%s>" % (ADDON_ID, dir), xbmc.LOGDEBUG)
   
   observer.start()
   while (not xbmc.abortRequested):
