@@ -111,6 +111,7 @@ if __name__ == "__main__":
   
   dirs = get_media_sources()
   for item in dirs:
+    item = item.encode('utf-8')
     if os.path.exists(item):
       xbmc.log("%s: watching <%s>" % (ADDON_ID, item), xbmc.LOGDEBUG)
       observer.schedule(event_handler, path=item, recursive=True)
