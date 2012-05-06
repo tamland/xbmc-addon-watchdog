@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
-  <string id="30001">Clean library when files are moved or deleted</string>
+  <string id="30010">Clean library when files are moved or deleted</string>
+  <string id="30020">Method</string>
+  <string id="30021">Syscall</string>
+  <string id="30022">Polling</string>
 </strings>
 

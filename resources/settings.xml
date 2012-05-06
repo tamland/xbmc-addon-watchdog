@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-  <setting id="clean" type="bool" label="30001" default="false"/>
+  <setting label="30010" id="clean" type="bool" default="false"/>
+  <setting label="30020" id="method" type="enum" lvalues="30021|30022" default="0"/>
 </settings>

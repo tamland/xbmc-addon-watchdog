@@ -20,14 +20,18 @@ import xbmcaddon
 import debugging
 from time import sleep
 from threading import Thread
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-
 
 ADDON    = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
 CLEAN    = ADDON.getSetting("clean") in ["true", "True", "1"]
+POLLING  = int(ADDON.getSetting("method"))
 DELAY    = 1
+
+if POLLING:
+  from watchdog.observers.polling import PollingObserver as Observer
+else:
+  from watchdog.observers import Observer
 
 
 class Worker(Thread):
@@ -106,8 +110,7 @@ def log(msg):
 if __name__ == "__main__":
   event_handler = EventHandler()
   observer = Observer()
-  
-  log("using <%s>" % debugging.get_observer_name())
+  log("using <%s>" % Observer)
   
   for dir in get_media_sources():
     dir = dir.encode('utf-8')
