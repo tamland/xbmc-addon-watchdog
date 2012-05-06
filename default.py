@@ -111,7 +111,7 @@ def log(msg):
 if __name__ == "__main__":
   event_handler = EventHandler()
   observer = Observer()
-  log("using <%s>" % Observer)
+  log("using <%s>, recursive: %i" % (Observer, RECURSIVE))
   
   for dir in get_media_sources():
     dir = dir.encode('utf-8')
