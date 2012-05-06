@@ -4,5 +4,6 @@
   <string id="30020">Method</string>
   <string id="30021">Syscall</string>
   <string id="30022">Polling</string>
+  <string id="30030">Only watch root directory</string>
 </strings>
 

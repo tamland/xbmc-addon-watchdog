@@ -2,4 +2,5 @@
 <settings>
   <setting label="30010" id="clean" type="bool" default="false"/>
   <setting label="30020" id="method" type="enum" lvalues="30021|30022" default="0"/>
+  <setting label="30030" id="recursive" type="bool" enable="eq(-1,1)" default="false"/>
 </settings>

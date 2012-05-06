@@ -24,8 +24,9 @@ from watchdog.events import FileSystemEventHandler
 
 ADDON    = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
-CLEAN    = ADDON.getSetting("clean") in ["true", "True", "1"]
+CLEAN    = ADDON.getSetting("clean") in ["true"]
 POLLING  = int(ADDON.getSetting("method"))
+RECURSIVE = ADDON.getSetting("recursive") in ['true'] and POLLING
 DELAY    = 1
 
 if POLLING:
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     dir = dir.encode('utf-8')
     if os.path.exists(dir):
       log("watching <%s>" % dir)
-      observer.schedule(event_handler, path=dir, recursive=True)
+      observer.schedule(event_handler, path=dir, recursive=RECURSIVE)
     else:
       log("not watching <%s>" % dir)
   
