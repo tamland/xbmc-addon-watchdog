@@ -22,12 +22,12 @@ from time import sleep
 from threading import Thread
 from watchdog.events import FileSystemEventHandler
 
-ADDON    = xbmcaddon.Addon()
+ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
-CLEAN    = ADDON.getSetting("clean") in ["true"]
-POLLING  = int(ADDON.getSetting("method"))
-RECURSIVE = ADDON.getSetting("recursive") in ['true'] and POLLING
-DELAY    = 1
+CLEAN = ADDON.getSetting('clean') in ['true']
+POLLING = int(ADDON.getSetting('method'))
+RECURSIVE = ADDON.getSetting('recursive') in ['true'] and POLLING
+DELAY = 1
 
 if POLLING:
   from watchdog.observers.polling import PollingObserver as Observer
