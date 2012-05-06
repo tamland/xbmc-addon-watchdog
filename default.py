@@ -41,14 +41,14 @@ class Worker(Thread):
     while True:
       if self.clean:
         self.clean = False
-        xbmc.log("%s cleaning library" % (ADDON_ID), xbmc.LOGDEBUG)
+        log("cleaning library")
         xbmc.executebuiltin("CleanLibrary(video)")
         sleep(1) #give xbmc time to render
         while xbmc.getCondVisibility('Window.IsActive(10101)'):
           sleep(1)
       
       if self.scan:
-        xbmc.log("%s scanning library" % (ADDON_ID), xbmc.LOGDEBUG)
+        log("scanning library")
         self.scan = False
         xbmc.executebuiltin("UpdateLibrary(video)")
         sleep(1)
@@ -58,7 +58,6 @@ class Worker(Thread):
       #done if no new requests since scan/clean was set to false
       if not(self.scan) and not(self.clean):
         return
-
 
 class EventHandler(FileSystemEventHandler):
   def __init__(self):
@@ -90,8 +89,7 @@ class EventHandler(FileSystemEventHandler):
     self._scan()
   
   def on_any_event(self, event):
-    xbmc.log("%s <%s> <%s>" % (ADDON_ID, str(event.event_type), str(event.src_path)), xbmc.LOGDEBUG)
-
+    log("<%s> <%s>" % (str(event.event_type), str(event.src_path)))
 
 def get_media_sources():
   query = '{"jsonrpc": "2.0", "method": "Files.GetSources", "params": {"media": "video"}, "id": 1}'
@@ -102,20 +100,22 @@ def get_media_sources():
       return [ e['file'] for e in json['result']['sources'] ]
   return []
 
+def log(msg):
+  xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
 
 if __name__ == "__main__":
   event_handler = EventHandler()
   observer = Observer()
   
-  xbmc.log("%s: using <%s>" % (ADDON_ID, debugging.get_observer_name()), xbmc.LOGDEBUG)
+  log("using <%s>" % debugging.get_observer_name())
   
   for dir in get_media_sources():
     dir = dir.encode('utf-8')
     if os.path.exists(dir):
-      xbmc.log("%s: watching <%s>" % (ADDON_ID, dir), xbmc.LOGDEBUG)
+      log("watching <%s>" % dir)
       observer.schedule(event_handler, path=dir, recursive=True)
     else:
-      xbmc.log("%s: not watching <%s>" % (ADDON_ID, dir), xbmc.LOGDEBUG)
+      log("not watching <%s>" % dir)
   
   observer.start()
   while (not xbmc.abortRequested):
