@@ -26,7 +26,7 @@ ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
 CLEAN = ADDON.getSetting('clean') in ['true']
 POLLING = int(ADDON.getSetting('method'))
-RECURSIVE = ADDON.getSetting('recursive') in ['true'] and POLLING
+RECURSIVE = not (ADDON.getSetting('nonrecursive') in ['true']) or not POLLING
 DELAY = 1
 
 if POLLING:
