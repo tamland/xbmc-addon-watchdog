@@ -17,7 +17,6 @@ import os
 import simplejson
 import xbmc
 import xbmcaddon
-import debugging
 from time import sleep
 from threading import Thread
 from watchdog.events import FileSystemEventHandler
