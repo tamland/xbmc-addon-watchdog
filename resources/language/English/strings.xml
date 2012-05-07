@@ -5,5 +5,7 @@
   <string id="30021">Syscall</string>
   <string id="30022">Polling</string>
   <string id="30030">Only watch root directory</string>
+  <string id="30040">Watch video library</string>
+  <string id="30050">Watch music library</string>
 </strings>
 

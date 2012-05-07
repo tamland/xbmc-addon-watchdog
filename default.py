@@ -26,6 +26,8 @@ ADDON_ID = ADDON.getAddonInfo('id')
 CLEAN = ADDON.getSetting('clean') in ['true']
 POLLING = int(ADDON.getSetting('method'))
 RECURSIVE = not (ADDON.getSetting('nonrecursive') in ['true']) or not POLLING
+WATCH_VIDEO = ADDON.getSetting('watchvideo') in ['true']
+WATCH_MUSIC = ADDON.getSetting('watchmusic') in ['true']
 DELAY = 1
 
 if POLLING:
@@ -35,26 +37,27 @@ else:
 
 
 class Worker(Thread):
-  def __init__(self):
+  def __init__(self, library):
     Thread.__init__(self)
     self.scan = False
     self.clean = False
+    self.library = library
   
   def run(self):
     sleep(DELAY)
     while True:
       if self.clean:
         self.clean = False
-        log("cleaning library")
-        xbmc.executebuiltin("CleanLibrary(video)")
+        log("cleaning %s library" % self.library)
+        xbmc.executebuiltin("CleanLibrary(%s)" % self.library)
         sleep(1) #give xbmc time to render
         while xbmc.getCondVisibility('Window.IsActive(10101)'):
           sleep(1)
       
       if self.scan:
-        log("scanning library")
+        log("scanning %s library" % self.library)
         self.scan = False
-        xbmc.executebuiltin("UpdateLibrary(video)")
+        xbmc.executebuiltin("UpdateLibrary(%s)" % self.library)
         sleep(1)
         while xbmc.getCondVisibility('Library.IsScanning'):
           sleep(1)
@@ -64,9 +67,10 @@ class Worker(Thread):
         return
 
 class EventHandler(FileSystemEventHandler):
-  def __init__(self):
+  def __init__(self, library):
     FileSystemEventHandler.__init__(self)
-    self.worker = Worker()
+    self.worker = Worker(library)
+    self.library = library
   
   def _scan(self):
     self._on_worker('scan')
@@ -78,7 +82,7 @@ class EventHandler(FileSystemEventHandler):
     if self.worker.isAlive():
       setattr(self.worker, attr, True)
     else:
-      self.worker = Worker()
+      self.worker = Worker(self.library)
       setattr(self.worker, attr, True)
       self.worker.start()
   
@@ -95,8 +99,8 @@ class EventHandler(FileSystemEventHandler):
   def on_any_event(self, event):
     log("<%s> <%s>" % (str(event.event_type), str(event.src_path)))
 
-def get_media_sources():
-  query = '{"jsonrpc": "2.0", "method": "Files.GetSources", "params": {"media": "video"}, "id": 1}'
+def get_media_sources(type):
+  query = '{"jsonrpc": "2.0", "method": "Files.GetSources", "params": {"media": "%s"}, "id": 1}' % type
   result = xbmc.executeJSONRPC(query)
   json = simplejson.loads(result)
   if json.has_key('result'):
@@ -107,22 +111,27 @@ def get_media_sources():
 def log(msg):
   xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
 
-if __name__ == "__main__":
-  event_handler = EventHandler()
+def watch(library):
+  event_handler = EventHandler(library)
   observer = Observer()
-  log("using <%s>, recursive: %i" % (Observer, RECURSIVE))
-  
-  for dir in get_media_sources():
+  for dir in get_media_sources(library):
     dir = dir.encode('utf-8')
     if os.path.exists(dir):
       log("watching <%s>" % dir)
       observer.schedule(event_handler, path=dir, recursive=RECURSIVE)
     else:
       log("not watching <%s>" % dir)
-  
   observer.start()
+  return observer
+
+if __name__ == "__main__":
+  log("using <%s>, recursive: %i" % (Observer, RECURSIVE))
+  observers = []
+  if WATCH_VIDEO: observers.append(watch('video'))
+  if WATCH_MUSIC: observers.append(watch('music'))
+  
   while (not xbmc.abortRequested):
     sleep(1)
-  observer.stop()
-  observer.join()
-
+  for o in observers:
+    o.stop()
+    o.join()
