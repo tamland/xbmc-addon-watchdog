@@ -18,6 +18,7 @@ import simplejson
 import xbmc
 import xbmcaddon
 from time import sleep
+from urllib import unquote
 from threading import Thread
 from watchdog.events import FileSystemEventHandler
 
@@ -110,10 +111,19 @@ def get_media_sources(type):
   query = '{"jsonrpc": "2.0", "method": "Files.GetSources", "params": {"media": "%s"}, "id": 1}' % type
   result = xbmc.executeJSONRPC(query)
   json = simplejson.loads(result)
+  ret = []
   if json.has_key('result'):
     if json['result'].has_key('sources'):
-      return [ e['file'] for e in json['result']['sources'] ]
-  return []
+      paths = [ e['file'] for e in json['result']['sources'] ]
+      for path in paths:
+        #split and decode multipaths
+        if path.startswith("multipath://"):
+          for e in path.split("multipath://")[1].split('/'):
+            if e != "":
+              ret.append(unquote(e))
+        else:
+          ret.append(path)
+  return ret
 
 def log(msg):
   xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
