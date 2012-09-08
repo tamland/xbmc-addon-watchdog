@@ -51,6 +51,8 @@ class Worker(Thread):
     sleep(DELAY)
     while True:
       if self.clean:
+        while xbmc.Player().isPlaying():
+          sleep(1)
         self.clean = False
         log("cleaning %s library" % self.library)
         xbmc.executebuiltin("CleanLibrary(%s)" % self.library)
@@ -59,6 +61,8 @@ class Worker(Thread):
           sleep(1)
       
       if self.scan:
+        while xbmc.Player().isPlaying():
+          sleep(1)
         log("scanning %s library" % self.library)
         self.scan = False
         xbmc.executebuiltin("UpdateLibrary(%s)" % self.library)
