@@ -20,6 +20,7 @@ import xbmcaddon
 from time import sleep
 from urllib import unquote
 from threading import Thread
+from functools import partial
 from watchdog.events import FileSystemEventHandler
 
 ADDON = xbmcaddon.Addon()
@@ -41,11 +42,12 @@ else:
 
 
 class Worker(Thread):
-  def __init__(self, library):
+  def __init__(self, library, path):
     Thread.__init__(self)
     self.scan = False
     self.clean = False
     self.library = library
+    self.path = path
   
   def run(self):
     sleep(DELAY)
@@ -63,9 +65,9 @@ class Worker(Thread):
       if self.scan:
         while xbmc.Player().isPlaying():
           sleep(1)
-        log("scanning %s library" % self.library)
+        log("scanning %s (%s)" % (self.path, self.library))
         self.scan = False
-        xbmc.executebuiltin("UpdateLibrary(%s)" % self.library)
+        xbmc.executebuiltin("UpdateLibrary(%s,%s)" % (self.library, self.path))
         sleep(1)
         while xbmc.getCondVisibility('Library.IsScanning'):
           sleep(1)
@@ -75,10 +77,10 @@ class Worker(Thread):
         return
 
 class EventHandler(FileSystemEventHandler):
-  def __init__(self, library):
+  def __init__(self, library, path):
     FileSystemEventHandler.__init__(self)
-    self.worker = Worker(library)
-    self.library = library
+    self.new_worker = partial(Worker, library=library, path=path)
+    self.worker = self.new_worker()
   
   def _scan(self):
     self._on_worker('scan')
@@ -90,7 +92,7 @@ class EventHandler(FileSystemEventHandler):
     if self.worker.isAlive():
       setattr(self.worker, attr, True)
     else:
-      self.worker = Worker(self.library)
+      self.worker = self.new_worker()
       setattr(self.worker, attr, True)
       self.worker.start()
   
@@ -133,23 +135,27 @@ def log(msg):
   xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
 
 def watch(library):
-  event_handler = EventHandler(library)
-  observer = Observer()
-  for dir in get_media_sources(library):
-    dir = dir.encode('utf-8')
-    if os.path.exists(dir):
-      log("watching <%s>" % dir)
-      observer.schedule(event_handler, path=dir, recursive=RECURSIVE)
+  observers = []
+  for path in get_media_sources(library):
+    path = path.encode('utf-8')
+    if os.path.exists(path):
+      event_handler = EventHandler(library, path)
+      observer = Observer()
+      observer.schedule(event_handler, path=path, recursive=RECURSIVE)
+      observers.append(observer)
+      log("watching <%s>" % path)
     else:
-      log("not watching <%s>" % dir)
-  observer.start()
-  return observer
+      log("not watching <%s>" % path)
+  return observers
 
 if __name__ == "__main__":
   log("using <%s>, recursive: %i" % (Observer, RECURSIVE))
   observers = []
-  if WATCH_VIDEO: observers.append(watch('video'))
-  if WATCH_MUSIC: observers.append(watch('music'))
+  if WATCH_VIDEO: observers.extend(watch('video'))
+  if WATCH_MUSIC: observers.extend(watch('music'))
+  
+  for o in observers:
+    o.start()
   
   while (not xbmc.abortRequested):
     sleep(1)
