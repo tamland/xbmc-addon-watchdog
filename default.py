@@ -75,7 +75,7 @@ class EventQueue(pykka.ThreadingActor):
       elif msg == 'clean':
         return xbmc_actor.clean(library, path).get()
     self.new_worker = partial(EventQueue.Worker, ask)
-    self.worker = self.new_worker()
+    self.worker = None
   
   def _notify_worker(self, attr):
     if not(self.worker) or not(self.worker.isAlive()):
