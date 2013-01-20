@@ -175,11 +175,12 @@ def watch(library, xbmc_actor):
 
 if __name__ == "__main__":
   log("using <%s>, recursive: %i" % (Observer, RECURSIVE))
-  
   xbmc_actor = XBMCActor.start().proxy()
   threads = []
-  if WATCH_VIDEO: threads.extend(watch('video', xbmc_actor))
-  if WATCH_MUSIC: threads.extend(watch('music', xbmc_actor))
+  if WATCH_VIDEO:
+    threads.extend(watch('video', xbmc_actor))
+  if WATCH_MUSIC:
+    threads.extend(watch('music', xbmc_actor))
   
   while not xbmc.abortRequested:
     sleep(1)
