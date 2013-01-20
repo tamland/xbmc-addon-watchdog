@@ -81,18 +81,14 @@ class EventQueue(pykka.ThreadingActor):
     if not(self.worker) or not(self.worker.isAlive()):
       self.worker = self.new_worker()
       setattr(self.worker, attr, True)
-      log("EventQueue(%s, %s): worker not alive. starting: %s" % (self.path, self.library, self.worker))
       self.worker.start()
     else:
-      log("EventQueue(%s, %s): worker alive" % (self.path, self.library))
       setattr(self.worker, attr, True)
   
   def scan(self):
-    log("EventQueue(%s, %s).scan()" % (self.path, self.library))
     self._notify_worker('scan')
   
   def clean(self):
-    log("EventQueue(%s, %s).clean()" % (self.path, self.library))
     self._notify_worker('clean')
   
   class Worker(threading.Thread):
