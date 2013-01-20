@@ -66,9 +66,6 @@ class EventQueue(pykka.ThreadingActor):
   """ Handles all raw incomming events for single root path and library. """
   def __init__(self, library, path, xbmc_actor):
     super(EventQueue, self).__init__()
-    self.library = library
-    self.path = path
-    
     def ask(msg):
       if msg == 'scan':
         return xbmc_actor.scan(library, path).get()
