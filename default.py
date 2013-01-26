@@ -13,6 +13,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import os
+import traceback
 import simplejson
 import threading
 import pykka
@@ -161,14 +162,18 @@ def watch(library, xbmc_actor):
   for path in get_media_sources(library):
     path = path.encode('utf-8')
     if os.path.exists(path):
-      event_queue = EventQueue.start(library, path, xbmc_actor).proxy()
-      event_handler = EventHandler(event_queue)
-      observer = Observer()
-      observer.schedule(event_handler, path=path, recursive=RECURSIVE)
-      observer.start()
-      threads.append(observer)
-      threads.append(event_queue)
-      log("watching <%s>" % path)
+      try:
+        event_queue = EventQueue.start(library, path, xbmc_actor).proxy()
+        event_handler = EventHandler(event_queue)
+        observer = Observer()
+        observer.schedule(event_handler, path=path, recursive=RECURSIVE)
+        observer.start()
+        threads.append(observer)
+        threads.append(event_queue)
+        log("watching <%s>" % path)
+      except Exception as e:
+        traceback.print_exc()
+        log("not watching <%s>" % path)
     else:
       log("not watching <%s>" % path)
   return threads
