@@ -210,7 +210,7 @@ if __name__ == "__main__":
   for th in threads:
     try:
       th.stop()
-      th.join()
     except Exception as e:
-      pass
+      traceback.print_exc()
+      continue
   xbmc_actor.stop()
