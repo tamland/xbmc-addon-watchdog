@@ -2,14 +2,18 @@
 <strings>
   <string id="30001">General</string>
   <string id="30002">Advanced</string>
-  <string id="30005">Clean library when files are moved or deleted</string>
-  <string id="30006">Method</string>
-  <string id="30007">Syscall</string>
-  <string id="30008">Polling</string>
-  <string id="30009">Only watch root directory</string>
   <string id="30003">Watch video library</string>
   <string id="30004">Watch music library</string>
+  <string id="30005">Clean library when files are moved or deleted</string>
+  <string id="30006">Preferred method</string>
+  <string id="30007">Syscall</string>
+  <string id="30008">Polling</string>
+  <string id="30009"></string>
   <string id="30010">Delay</string>
   <string id="30011">Show notifications</string>
+  <string id="30012">Polling method for network shares</string>
+  <string id="30013">Depth 1 (Look in top directory only)</string>
+  <string id="30014">Depth 2 (Look 2 directories deep)</string>
+  <string id="30015">Depth inf. (Look in every subdirectory)</string>
 </strings>
 

@@ -13,6 +13,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import os
+import re
 import traceback
 import simplejson
 import threading
@@ -20,25 +21,23 @@ import pykka
 import watchdog
 import xbmc
 import xbmcaddon
+import xbmcvfs
 from time import sleep
 from urllib import unquote
 from functools import partial
+from watchdog.events import FileSystemEventHandler
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
 CLEAN = ADDON.getSetting('clean') == 'true'
 POLLING = int(ADDON.getSetting('method'))
+POLLING_METHOD = int(ADDON.getSetting('pollingmethod'))
 RECURSIVE = not (ADDON.getSetting('nonrecursive') in ['true']) or not POLLING
 WATCH_VIDEO = ADDON.getSetting('watchvideo') in ['true']
 WATCH_MUSIC = ADDON.getSetting('watchmusic') in ['true']
 DELAY = int(ADDON.getSetting('delay')) or 1
 SHOW_NOTIFICATIONS = ADDON.getSetting('notifications') == 'true'
 EXTENSIONS = "|.nsv|.m4a|.flac|.aac|.strm|.pls|.rm|.rma|.mpa|.wav|.wma|.ogg|.mp3|.mp2|.m3u|.mod|.amf|.669|.dmf|.dsm|.far|.gdm|.imf|.it|.m15|.med|.okt|.s3m|.stm|.sfx|.ult|.uni|.xm|.sid|.ac3|.dts|.cue|.aif|.aiff|.wpl|.ape|.mac|.mpc|.mp+|.mpp|.shn|.zip|.rar|.wv|.nsf|.spc|.gym|.adx|.dsp|.adp|.ymf|.ast|.afc|.hps|.xsp|.xwav|.waa|.wvs|.wam|.gcm|.idsp|.mpdsp|.mss|.spt|.rsd|.mid|.kar|.sap|.cmc|.cmr|.dmc|.mpt|.mpd|.rmt|.tmc|.tm8|.tm2|.oga|.url|.pxml|.tta|.rss|.cm3|.cms|.dlt|.brstm|.wtv|.mka|.m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.m3u|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.rar|.001|.wpl|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.wtv|.m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.m3u|.m3u8|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.rar|.001|.wpl|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.wtv|"
-
-if POLLING:
-  from watchdog.observers.polling import PollingObserver as Observer
-else:
-  from watchdog.observers import Observer
 
 
 class XBMCActor(pykka.ThreadingActor):
@@ -114,7 +113,7 @@ class EventQueue(pykka.ThreadingActor):
           return
 
 
-class EventHandler(watchdog.events.FileSystemEventHandler):
+class EventHandler(FileSystemEventHandler):
   def __init__(self, event_queue):
     super(EventHandler, self).__init__()
     self.event_queue = event_queue
@@ -163,20 +162,32 @@ def notify(msg):
   if SHOW_NOTIFICATIONS:
     xbmc.executebuiltin("XBMC.Notification(Library Watchdog, %s)" % msg)
 
+def select_observer(path):
+  import observers
+  if os.path.exists(path):
+    if POLLING:
+      return observers.local_full
+    return observers.auto
+  elif re.match("^[A-Za-z]+://", path):
+    if xbmcvfs.exists(path):
+      return [observers.xbmc_depth_1, observers.xbmc_depth_2, observers.xbmc_full][POLLING_METHOD]
+  return None
+
 def watch(library, xbmc_actor):
   threads = []
   for path in get_media_sources(library):
     path = path.encode('utf-8')
-    if os.path.exists(path):
+    observer_cls = select_observer(path)
+    if observer_cls:
       try:
         event_queue = EventQueue.start(library, path, xbmc_actor).proxy()
         event_handler = EventHandler(event_queue)
-        observer = Observer()
+        observer = observer_cls()
         observer.schedule(event_handler, path=path, recursive=RECURSIVE)
         observer.start()
         threads.append(observer)
         threads.append(event_queue)
-        log("watching <%s>" % path)
+        log("watching <%s> using %s" % (path, observer_cls))
       except Exception as e:
         traceback.print_exc()
         notify("Not watching %s" % path)
@@ -185,7 +196,6 @@ def watch(library, xbmc_actor):
   return threads
 
 if __name__ == "__main__":
-  log("using <%s>, recursive: %i" % (Observer, RECURSIVE))
   xbmc_actor = XBMCActor.start().proxy()
   threads = []
   if WATCH_VIDEO:
