@@ -158,7 +158,6 @@ def log(msg):
   xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
 
 def notify(msg):
-  log(msg)
   if SHOW_NOTIFICATIONS:
     xbmc.executebuiltin("XBMC.Notification(Library Watchdog, %s)" % msg)
 
@@ -190,8 +189,11 @@ def watch(library, xbmc_actor):
         log("watching <%s> using %s" % (path, observer_cls))
       except Exception as e:
         traceback.print_exc()
+        log("not watching <%s>" % path)
         notify("Not watching %s" % path)
+        continue
     else:
+      log("not watching <%s>" % path)
       notify("Not watching %s" % path)
   return threads
 
