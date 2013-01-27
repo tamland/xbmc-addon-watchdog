@@ -10,7 +10,7 @@
   <extension point="xbmc.service" start="login" library="default.py"/>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
-    <summary>Keep your video and music library updated</summary>
-    <description>This service will update your video and music library whenever you remove or add new files to your media sources. Update is instant to keep your library synced at all times![CR][CR]Note: unmounted network shares not supported.</description>
+    <summary>Keep library synced with file system</summary>
+    <description>This service will automatically update the video and music library when new files are added or removed from a media source. Update is instant.</description>
   </extension>
 </addon>
