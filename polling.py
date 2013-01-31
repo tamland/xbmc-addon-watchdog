@@ -13,6 +13,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import time
+import xbmc
 from functools import partial
 from watchdog.observers.api import EventEmitter, BaseObserver
 from watchdog.events import DirDeletedEvent, DirCreatedEvent
@@ -70,14 +71,15 @@ class Poller(EventEmitter):
   
   def queue_events(self, timeout):
     time.sleep(timeout)
-    new_snapshot = self._make_snapshot(self.watch.path)
-    created, deleted, modified = self._snapshot.diff(new_snapshot)
-    self._snapshot = new_snapshot
-    
-    if modified or deleted:
-      self.queue_event(DirDeletedEvent(self.watch.path + '*'))
-    if modified or created:
-      self.queue_event(DirCreatedEvent(self.watch.path + '*'))
+    if not xbmc.Player().isPlaying():
+      new_snapshot = self._make_snapshot(self.watch.path)
+      created, deleted, modified = self._snapshot.diff(new_snapshot)
+      self._snapshot = new_snapshot
+      
+      if modified or deleted:
+        self.queue_event(DirDeletedEvent(self.watch.path + '*'))
+      if modified or created:
+        self.queue_event(DirCreatedEvent(self.watch.path + '*'))
 
 class PollingObserverBase(BaseObserver):
   def __init__(self, make_snapshot, polling_interval=1):
