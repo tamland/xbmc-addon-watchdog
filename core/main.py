@@ -197,7 +197,7 @@ def watch(library, xbmc_actor):
       notify("Not watching %s" % path)
   return threads
 
-if __name__ == "__main__":
+def main():
   xbmc_actor = XBMCActor.start().proxy()
   threads = []
   if WATCH_VIDEO:
@@ -214,3 +214,6 @@ if __name__ == "__main__":
       traceback.print_exc()
       continue
   xbmc_actor.stop()
+
+if __name__ == "__main__":
+  main()
