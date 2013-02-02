@@ -8,6 +8,7 @@
     <import addon="script.module.simplejson" version="2.0.10"/>
   </requires>
   <extension point="xbmc.service" start="login" library="default.py"/>
+  <extension point="xbmc.python.script" library="script.py"/>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
     <summary>Keep library synced with file system</summary>
