@@ -37,7 +37,6 @@ class PathSnapsot(object):
     self._dirs = set()
     for dirs, files in walker(root):
       self._dirs.update(dirs)
-      self._paths.update(dirs)
       self._paths.update(files)
   
   def path_diff(self, other):
