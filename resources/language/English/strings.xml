@@ -15,5 +15,6 @@
   <string id="30013">Depth 1 (Look in top directory only)</string>
   <string id="30014">Depth 2 (Look 2 directories deep)</string>
   <string id="30015">Depth inf. (Look in every subdirectory)</string>
+  <string id="30016">Pause on playback</string>
 </strings>
 
