@@ -53,7 +53,7 @@ class XBMCActor(pykka.ThreadingActor):
     while self._xbmc_is_busy():
       pass
     log("scanning %s (%s)" % (path, library))
-    xbmc.executebuiltin("UpdateLibrary(%s,%s)" % (library, path))
+    xbmc.executebuiltin("UpdateLibrary(%s,\"%s\")" % (library, path))
   
   def clean(self, library, path=None):
     """ Tell xbmc to clean. Returns immediately when scanning has started. """
@@ -161,7 +161,7 @@ def log(msg):
 
 def notify(msg):
   if SHOW_NOTIFICATIONS:
-    xbmc.executebuiltin("XBMC.Notification(Library Watchdog, %s)" % msg)
+    xbmc.executebuiltin("XBMC.Notification(Library Watchdog,\"%s\")" % msg)
 
 def select_observer(path):
   import observers
