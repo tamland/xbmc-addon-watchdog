@@ -176,7 +176,9 @@ def select_observer(path):
 
 def watch(library, xbmc_actor):
   threads = []
-  for path in get_media_sources(library):
+  sources = get_media_sources(library)
+  log("%s sources %s" % (library, sources))
+  for path in sources:
     path = path.encode('utf-8')
     observer_cls = select_observer(path)
     if observer_cls:
