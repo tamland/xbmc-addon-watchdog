@@ -54,7 +54,7 @@ class XBMCActor(pykka.ThreadingActor):
     while self._xbmc_is_busy():
       pass
     log("scanning %s (%s)" % (path, library))
-    xbmc.executebuiltin("UpdateLibrary(%s,\"%s\")" % (library, path))
+    xbmc.executebuiltin("UpdateLibrary(%s,\"%s\")" % (library, path.encode('utf-8')))
   
   def clean(self, library, path=None):
     """ Tell xbmc to clean. Returns immediately when scanning has started. """
@@ -136,7 +136,7 @@ class EventHandler(FileSystemEventHandler):
     self.event_queue.scan()
   
   def on_any_event(self, event):
-    log("<%s> <%s>" % (str(event.event_type), str(event.src_path)))
+    log("<%s> <%s>" % (event.event_type, event.src_path))
 
 
 def get_media_sources(type):
@@ -158,11 +158,11 @@ def get_media_sources(type):
   return ret
 
 def log(msg):
-  xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
+  xbmc.log("%s: %s" % (ADDON_ID, msg.encode('utf-8')), xbmc.LOGDEBUG)
 
 def notify(msg):
   if SHOW_NOTIFICATIONS:
-    xbmc.executebuiltin("XBMC.Notification(Library Watchdog,\"%s\")" % msg)
+    xbmc.executebuiltin("XBMC.Notification(Library Watchdog,\"%s\")" % msg.encode('utf-8'))
 
 def select_observer(path):
   import observers
@@ -180,7 +180,6 @@ def watch(library, xbmc_actor):
   sources = get_media_sources(library)
   log("%s sources %s" % (library, sources))
   for path in sources:
-    path = path.encode('utf-8')
     observer_cls = select_observer(path)
     if observer_cls:
       try:
