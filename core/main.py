@@ -54,7 +54,7 @@ class XBMCActor(pykka.ThreadingActor):
     while self._xbmc_is_busy():
       pass
     log("scanning %s (%s)" % (path, library))
-    xbmc.executebuiltin("UpdateLibrary(%s,\"%s\")" % (library, path.encode('utf-8')))
+    xbmc.executebuiltin("UpdateLibrary(%s,%s)" % (library, escape_param(path)))
   
   def clean(self, library, path=None):
     """ Tell xbmc to clean. Returns immediately when scanning has started. """
@@ -157,12 +157,16 @@ def get_media_sources(type):
           ret.append(path)
   return ret
 
+def escape_param(s):
+  escaped = s.replace('\\', '\\\\').replace('"', '\\"')
+  return '"' + escaped.encode('utf-8') + '"'
+
 def log(msg):
   xbmc.log("%s: %s" % (ADDON_ID, msg.encode('utf-8')), xbmc.LOGDEBUG)
 
 def notify(msg):
   if SHOW_NOTIFICATIONS:
-    xbmc.executebuiltin("XBMC.Notification(Library Watchdog,\"%s\")" % msg.encode('utf-8'))
+    xbmc.executebuiltin("XBMC.Notification(Library Watchdog,%s)" % escape_param(msg))
 
 def select_observer(path):
   import observers
