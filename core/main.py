@@ -120,23 +120,29 @@ class EventHandler(FileSystemEventHandler):
     self.event_queue = event_queue
   
   def on_created(self, event):
-    self.event_queue.scan()
+    if not self._can_skip(event, event.src_path):
+      self.event_queue.scan()
   
   def on_deleted(self, event):
-    if CLEAN:
-      if not event.is_directory:
-        _, ext = os.path.splitext(str(event.src_path))
-        if EXTENSIONS.find('|%s|' % ext) == -1:
-          return
+    if CLEAN and not self._can_skip(event, event.src_path):
       self.event_queue.clean()
   
   def on_moved(self, event):
-    if CLEAN:
+    if CLEAN and not self._can_skip(event, event.src_path):
       self.event_queue.clean()
-    self.event_queue.scan()
+    if not self._can_skip(event, event.dest_path):
+      self.event_queue.scan()
   
   def on_any_event(self, event):
     log("<%s> <%s>" % (event.event_type, event.src_path))
+  
+  def _can_skip(self, event, path):
+    if not event.is_directory and path:
+      _, ext = os.path.splitext(path)
+      if EXTENSIONS.find('|%s|' % ext) == -1:
+        log("skipping <%s> <%s>" % (event.event_type, path))
+        return True
+    return False
 
 
 def get_media_sources(type):
