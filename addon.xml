@@ -12,7 +12,7 @@
   <extension point="xbmc.python.script" library="script.py"/>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
-    <summary>Keep library synced with file system</summary>
-    <description>This service will automatically update the video and music library when new files are added or removed from a media source. Update is instant.</description>
+    <summary lang="en">Keep library synced with file system</summary>
+    <description lang="en">This service will automatically update the video and music library when new files are added or removed from a media source. Update is instant.</description>
   </extension>
 </addon>
