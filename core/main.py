@@ -170,9 +170,9 @@ def escape_param(s):
 def log(msg):
   xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
 
-def notify(msg):
+def notify(msg1, msg2):
   if SHOW_NOTIFICATIONS:
-    xbmc.executebuiltin("XBMC.Notification(Library Watchdog,%s)" % escape_param(msg))
+    xbmc.executebuiltin("XBMC.Notification(Watchdog: %s,%s)" % (msg1, escape_param(msg2)))
 
 def select_observer(path):
   import observers
@@ -203,12 +203,12 @@ def watch(library, xbmc_actor):
         log("watching <%s> using %s" % (path, observer_cls))
       except Exception as e:
         traceback.print_exc()
-        log("not watching <%s>" % path)
-        notify("Not watching %s" % path)
+        log("failed to watch <%s>" % path)
+        notify("Failed to watch", path)
         continue
     else:
-      log("not watching <%s>" % path)
-      notify("Not watching %s" % path)
+      log("not watching <%s>. does not exist" % path)
+      notify("Path does not exist", path)
   return threads
 
 def main():
