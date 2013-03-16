@@ -158,17 +158,17 @@ def get_media_sources(type):
         if path.startswith("multipath://"):
           for e in path.split("multipath://")[1].split('/'):
             if e != "":
-              ret.append(unquote(e))
+              ret.append(unquote(e).encode('utf-8'))
         else:
-          ret.append(path)
+          ret.append(path.encode('utf-8'))
   return ret
 
 def escape_param(s):
   escaped = s.replace('\\', '\\\\').replace('"', '\\"')
-  return '"' + escaped.encode('utf-8') + '"'
+  return '"' + escaped + '"'
 
 def log(msg):
-  xbmc.log("%s: %s" % (ADDON_ID, msg.encode('utf-8')), xbmc.LOGDEBUG)
+  xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
 
 def notify(msg):
   if SHOW_NOTIFICATIONS:
@@ -176,7 +176,7 @@ def notify(msg):
 
 def select_observer(path):
   import observers
-  if os.path.exists(path):
+  if os.path.exists(path): #path from xbmc appears to always be utf-8 so if it contains non-ascii and os is not utf-8, this will fail
     if POLLING:
       return observers.local_full
     return observers.auto
