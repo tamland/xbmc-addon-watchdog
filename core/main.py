@@ -193,6 +193,8 @@ def watch(library, xbmc_actor):
   sources = get_media_sources(library)
   log("%s sources %s" % (library, sources))
   for path in sources:
+    if xbmc.abortRequested:
+      break
     observer_cls = select_observer(path)
     if observer_cls:
       try:
