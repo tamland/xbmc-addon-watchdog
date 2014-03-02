@@ -36,6 +36,7 @@ RECURSIVE = not (ADDON.getSetting('nonrecursive') == 'true') or not POLLING
 WATCH_VIDEO = ADDON.getSetting('watchvideo') == 'true'
 WATCH_MUSIC = ADDON.getSetting('watchmusic') == 'true'
 DELAY = int("0"+ADDON.getSetting('delay')) or 1
+POLLING_INTERVAL = int("0"+ADDON.getSetting('pollinginterval')) or 4
 SHOW_NOTIFICATIONS = ADDON.getSetting('notifications') == 'true'
 PAUSE_ON_PLAYBACK = ADDON.getSetting('pauseonplayback') == 'true'
 FORCE_GLOBAL_SCAN = ADDON.getSetting('forceglobalscan') == 'true'
@@ -181,11 +182,12 @@ def select_observer(path):
   import observers
   if os.path.exists(path): #path from xbmc appears to always be utf-8 so if it contains non-ascii and os is not utf-8, this will fail
     if POLLING:
-      return observers.local_full
-    return observers.auto
+      return observers.local_full()
+    return observers.auto()
   elif re.match("^[A-Za-z]+://", path):
     if xbmcvfs.exists(path):
-      return [observers.xbmc_depth_1, observers.xbmc_depth_2, observers.xbmc_full][POLLING_METHOD]
+      observer_cls = [observers.xbmc_depth_1, observers.xbmc_depth_2, observers.xbmc_full][POLLING_METHOD]
+      return observer_cls(POLLING_INTERVAL)
   return None
 
 def watch(library, xbmc_actor):
@@ -195,17 +197,16 @@ def watch(library, xbmc_actor):
   for path in sources:
     if xbmc.abortRequested:
       break
-    observer_cls = select_observer(path)
-    if observer_cls:
+    observer = select_observer(path)
+    if observer:
       try:
         event_queue = EventQueue.start(library, path, xbmc_actor).proxy()
         event_handler = EventHandler(event_queue)
-        observer = observer_cls()
         observer.schedule(event_handler, path=path, recursive=RECURSIVE)
         observer.start()
         threads.append(observer)
         threads.append(event_queue)
-        log("watching <%s> using %s" % (path, observer_cls))
+        log("watching <%s> using %s" % (path, observer))
       except Exception as e:
         traceback.print_exc()
         log("failed to watch <%s>" % path)
