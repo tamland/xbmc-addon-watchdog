@@ -35,7 +35,7 @@ POLLING_METHOD = int(ADDON.getSetting('pollingmethod'))
 RECURSIVE = not (ADDON.getSetting('nonrecursive') == 'true') or not POLLING
 WATCH_VIDEO = ADDON.getSetting('watchvideo') == 'true'
 WATCH_MUSIC = ADDON.getSetting('watchmusic') == 'true'
-DELAY = int("0"+ADDON.getSetting('delay')) or 1
+SCAN_DELAY = int("0"+ADDON.getSetting('delay')) or 1
 POLLING_INTERVAL = int("0"+ADDON.getSetting('pollinginterval')) or 4
 SHOW_NOTIFICATIONS = ADDON.getSetting('notifications') == 'true'
 PAUSE_ON_PLAYBACK = ADDON.getSetting('pauseonplayback') == 'true'
@@ -106,7 +106,7 @@ class EventQueue(pykka.ThreadingActor):
       self.clean = False
     
     def run(self):
-      sleep(DELAY)
+      sleep(SCAN_DELAY)
       while True:
         if self.clean:
           self.ask('clean') # returns when scanning has started

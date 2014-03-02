@@ -9,7 +9,7 @@
   <string id="30007">Auto</string>
   <string id="30008">Polling</string>
   <string id="30009"></string>
-  <string id="30010">Delay</string>
+  <string id="30010">Delay before updating</string>
   <string id="30011">Show notifications</string>
   <string id="30012">Polling method for network shares</string>
   <string id="30013">Depth 1 (Look in top directory only)</string>
