@@ -20,19 +20,19 @@ from polling_xbmc import PollerObserver_Depth2 as xbmc_depth_2
 from polling_xbmc import PollerObserver_Full as xbmc_full
 
 try:
-  from watchdog.observers.inotify import InotifyObserver as _Observer
-except ImportError: 
-  try:
-    from watchdog.observers.fsevents import FSEventsObserver as _Observer
-  except ImportError:
+    from watchdog.observers.inotify import InotifyObserver as _Observer
+except ImportError:
     try:
-      from watchdog.observers.kqueue import KqueueObserver as _Observer
+        from watchdog.observers.fsevents import FSEventsObserver as _Observer
     except ImportError:
-      try:
-        from watchdog.observers.read_directory_changes_async import WindowsApiAsyncObserver as _Observer
-      except ImportError:
         try:
-          from watchdog.observers.read_directory_changes import WindowsApiObserver as _Observer
-        except (ImportError, AttributeError):
-          _Observer = local_full
+            from watchdog.observers.kqueue import KqueueObserver as _Observer
+        except ImportError:
+            try:
+                from watchdog.observers.read_directory_changes_async import WindowsApiAsyncObserver as _Observer
+            except ImportError:
+                try:
+                    from watchdog.observers.read_directory_changes import WindowsApiObserver as _Observer
+                except (ImportError, AttributeError):
+                    _Observer = local_full
 auto = _Observer
