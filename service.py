@@ -13,11 +13,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 if __name__ == "__main__":
-  import os
-  import sys
-  import xbmcaddon
-  libs = os.path.join(xbmcaddon.Addon().getAddonInfo('path'), 'lib')
-  sys.path.append(libs)
-  
-  from core import main
-  main.main()
+    import os
+    import sys
+    import xbmcaddon
+    libs = os.path.join(xbmcaddon.Addon().getAddonInfo('path'), 'lib')
+    sys.path.append(libs)
+
+    from core import main
+    main.main()
