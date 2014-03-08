@@ -21,12 +21,12 @@ from polling_xbmc import PollerObserver_Full as xbmc_full
 
 try:
     from watchdog.observers.inotify import InotifyObserver as _Observer
-except ImportError:
+except:
     try:
         from watchdog.observers.kqueue import KqueueObserver as _Observer
-    except ImportError:
+    except:
         try:
             from watchdog.observers.read_directory_changes import WindowsApiObserver as _Observer
-        except (ImportError, AttributeError):
+        except:
             _Observer = local_full
 auto = _Observer
