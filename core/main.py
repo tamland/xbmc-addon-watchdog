@@ -15,15 +15,15 @@
 import os
 import re
 import traceback
-import simplejson
 import threading
 import pykka
 import watchdog
 import xbmc
+import xbmcgui
 import xbmcaddon
 import xbmcvfs
 from time import sleep
-from urllib import unquote
+from utils import *
 from functools import partial
 from watchdog.events import FileSystemEventHandler
 
@@ -31,13 +31,10 @@ ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
 CLEAN = ADDON.getSetting('clean') == 'true'
 POLLING = int(ADDON.getSetting('method'))
-POLLING_METHOD = int(ADDON.getSetting('pollingmethod'))
 RECURSIVE = not (ADDON.getSetting('nonrecursive') == 'true') or not POLLING
 WATCH_VIDEO = ADDON.getSetting('watchvideo') == 'true'
 WATCH_MUSIC = ADDON.getSetting('watchmusic') == 'true'
 SCAN_DELAY = int("0"+ADDON.getSetting('delay')) or 1
-POLLING_INTERVAL = int("0"+ADDON.getSetting('pollinginterval')) or 4
-SHOW_NOTIFICATIONS = ADDON.getSetting('notifications') == 'true'
 PAUSE_ON_PLAYBACK = ADDON.getSetting('pauseonplayback') == 'true'
 FORCE_GLOBAL_SCAN = ADDON.getSetting('forceglobalscan') == 'true'
 EXTENSIONS = "|.nsv|.m4a|.flac|.aac|.strm|.pls|.rm|.rma|.mpa|.wav|.wma|.ogg|.mp3|.mp2|.m3u|.mod|.amf|.669|.dmf|.dsm|.far|.gdm|.imf|.it|.m15|.med|.okt|.s3m|.stm|.sfx|.ult|.uni|.xm|.sid|.ac3|.dts|.cue|.aif|.aiff|.wpl|.ape|.mac|.mpc|.mp+|.mpp|.shn|.zip|.rar|.wv|.nsf|.spc|.gym|.adx|.dsp|.adp|.ymf|.ast|.afc|.hps|.xsp|.xwav|.waa|.wvs|.wam|.gcm|.idsp|.mpdsp|.mss|.spt|.rsd|.mid|.kar|.sap|.cmc|.cmr|.dmc|.mpt|.mpd|.rmt|.tmc|.tm8|.tm2|.oga|.url|.pxml|.tta|.rss|.cm3|.cms|.dlt|.brstm|.wtv|.mka|.m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.m3u|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.rar|.001|.wpl|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.wtv|.m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.m3u|.m3u8|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.rar|.001|.wpl|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.wtv|"
@@ -148,47 +145,6 @@ class EventHandler(FileSystemEventHandler):
                 return True
         return False
 
-
-def get_media_sources(type):
-    query = '{"jsonrpc": "2.0", "method": "Files.GetSources", "params": {"media": "%s"}, "id": 1}' % type
-    result = xbmc.executeJSONRPC(query)
-    json = simplejson.loads(result)
-    ret = []
-    if json.has_key('result'):
-        if json['result'].has_key('sources'):
-            paths = [ e['file'] for e in json['result']['sources'] ]
-            for path in paths:
-                #split and decode multipaths
-                if path.startswith("multipath://"):
-                    for e in path.split("multipath://")[1].split('/'):
-                        if e != "":
-                            ret.append(unquote(e).encode('utf-8'))
-                else:
-                    ret.append(path.encode('utf-8'))
-    return ret
-
-def escape_param(s):
-    escaped = s.replace('\\', '\\\\').replace('"', '\\"')
-    return '"' + escaped + '"'
-
-def log(msg):
-    xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
-
-def notify(msg1, msg2):
-    if SHOW_NOTIFICATIONS:
-        xbmc.executebuiltin("XBMC.Notification(Watchdog: %s,%s)" % (msg1, escape_param(msg2)))
-
-def select_observer(path):
-    import observers
-    if os.path.exists(path): #path from xbmc appears to always be utf-8 so if it contains non-ascii and os is not utf-8, this will fail
-        if POLLING:
-            return observers.local_full()
-        return observers.auto()
-    elif re.match("^[A-Za-z]+://", path):
-        if xbmcvfs.exists(path):
-            observer_cls = [observers.xbmc_depth_1, observers.xbmc_depth_2, observers.xbmc_full][POLLING_METHOD]
-            return observer_cls(POLLING_INTERVAL)
-    return None
 
 def watch(library, xbmc_actor):
     threads = []
