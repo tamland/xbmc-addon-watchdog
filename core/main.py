@@ -23,21 +23,12 @@ import xbmcgui
 import xbmcaddon
 import xbmcvfs
 import utils
+import settings
 from utils import escape_param, notify, log
 from time import sleep
 from functools import partial
 from watchdog.events import FileSystemEventHandler
 
-ADDON = xbmcaddon.Addon()
-ADDON_ID = ADDON.getAddonInfo('id')
-CLEAN = ADDON.getSetting('clean') == 'true'
-POLLING = int(ADDON.getSetting('method'))
-RECURSIVE = not (ADDON.getSetting('nonrecursive') == 'true') or not POLLING
-WATCH_VIDEO = ADDON.getSetting('watchvideo') == 'true'
-WATCH_MUSIC = ADDON.getSetting('watchmusic') == 'true'
-SCAN_DELAY = int("0"+ADDON.getSetting('delay')) or 1
-PAUSE_ON_PLAYBACK = ADDON.getSetting('pauseonplayback') == 'true'
-FORCE_GLOBAL_SCAN = ADDON.getSetting('forceglobalscan') == 'true'
 EXTENSIONS = "|.nsv|.m4a|.flac|.aac|.strm|.pls|.rm|.rma|.mpa|.wav|.wma|.ogg|.mp3|.mp2|.m3u|.mod|.amf|.669|.dmf|.dsm|.far|.gdm|.imf|.it|.m15|.med|.okt|.s3m|.stm|.sfx|.ult|.uni|.xm|.sid|.ac3|.dts|.cue|.aif|.aiff|.wpl|.ape|.mac|.mpc|.mp+|.mpp|.shn|.zip|.rar|.wv|.nsf|.spc|.gym|.adx|.dsp|.adp|.ymf|.ast|.afc|.hps|.xsp|.xwav|.waa|.wvs|.wam|.gcm|.idsp|.mpdsp|.mss|.spt|.rsd|.mid|.kar|.sap|.cmc|.cmr|.dmc|.mpt|.mpd|.rmt|.tmc|.tm8|.tm2|.oga|.url|.pxml|.tta|.rss|.cm3|.cms|.dlt|.brstm|.wtv|.mka|.m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.m3u|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.rar|.001|.wpl|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.wtv|.m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.m3u|.m3u8|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.rar|.001|.wpl|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.wtv|"
 
 
@@ -45,7 +36,7 @@ class XBMCActor(pykka.ThreadingActor):
     """ Messaging interface to xbmc's executebuiltin calls """
     def _xbmc_is_busy(self):
         sleep(1) # visibility cant be immediately trusted. Give xbmc time to render
-        return ((xbmc.Player().isPlaying() and PAUSE_ON_PLAYBACK)
+        return ((xbmc.Player().isPlaying() and settings.PAUSE_ON_PLAYBACK)
             or xbmc.getCondVisibility('Library.IsScanning')
             or xbmc.getCondVisibility('Window.IsActive(10101)'))
 
@@ -54,7 +45,7 @@ class XBMCActor(pykka.ThreadingActor):
         while self._xbmc_is_busy():
             pass
         log("scanning %s (%s)" % (path, library))
-        if library == 'video' and FORCE_GLOBAL_SCAN:
+        if library == 'video' and settings.FORCE_GLOBAL_SCAN:
             xbmc.executebuiltin("UpdateLibrary(video)")
         else:
             xbmc.executebuiltin("UpdateLibrary(%s,%s)" % (library, escape_param(path)))
@@ -105,7 +96,7 @@ class EventQueue(pykka.ThreadingActor):
             self.clean = False
 
         def run(self):
-            sleep(SCAN_DELAY)
+            sleep(settings.SCAN_DELAY)
             while True:
                 if self.clean:
                     self.ask('clean') # returns when scanning has started
@@ -127,11 +118,11 @@ class EventHandler(FileSystemEventHandler):
             self.event_queue.scan()
 
     def on_deleted(self, event):
-        if CLEAN and not self._can_skip(event, event.src_path):
+        if settings.CLEAN and not self._can_skip(event, event.src_path):
             self.event_queue.clean()
 
     def on_moved(self, event):
-        if CLEAN and not self._can_skip(event, event.src_path):
+        if settings.CLEAN and not self._can_skip(event, event.src_path):
             self.event_queue.clean()
         if not self._can_skip(event, event.dest_path):
             self.event_queue.scan()
@@ -160,7 +151,7 @@ def watch(library, xbmc_actor):
             try:
                 event_queue = EventQueue.start(library, path, xbmc_actor).proxy()
                 event_handler = EventHandler(event_queue)
-                observer.schedule(event_handler, path=path, recursive=RECURSIVE)
+                observer.schedule(event_handler, path=path, recursive=settings.RECURSIVE)
                 observer.start()
                 threads.append(observer)
                 threads.append(event_queue)
@@ -178,9 +169,9 @@ def watch(library, xbmc_actor):
 def main():
     xbmc_actor = XBMCActor.start().proxy()
     threads = []
-    if WATCH_VIDEO:
+    if settings.WATCH_VIDEO:
         threads.extend(watch('video', xbmc_actor))
-    if WATCH_MUSIC:
+    if settings.WATCH_MUSIC:
         threads.extend(watch('music', xbmc_actor))
     while not xbmc.abortRequested:
         sleep(1)

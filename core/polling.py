@@ -18,10 +18,10 @@ from functools import partial
 from watchdog.observers.api import EventEmitter, BaseObserver
 from watchdog.events import DirDeletedEvent, DirCreatedEvent
 from utils import log
-from main import PAUSE_ON_PLAYBACK
+import settings
 
 def _paused():
-    return xbmc.Player().isPlaying() and PAUSE_ON_PLAYBACK
+    return xbmc.Player().isPlaying() and settings.PAUSE_ON_PLAYBACK
 
 def hidden(path):
     return path.startswith('.')

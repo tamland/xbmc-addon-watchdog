@@ -19,17 +19,11 @@ import xbmcaddon
 import xbmcvfs
 import simplejson
 from urllib import unquote
-
-ADDON = xbmcaddon.Addon()
-ADDON_ID = ADDON.getAddonInfo('id')
-SHOW_NOTIFICATIONS = ADDON.getSetting('notifications') == 'true'
-POLLING_INTERVAL = int("0"+ADDON.getSetting('pollinginterval')) or 4
-POLLING = int(ADDON.getSetting('method'))
-POLLING_METHOD = int(ADDON.getSetting('pollingmethod'))
+import settings
 
 
 def log(msg):
-    xbmc.log("%s: %s" % (ADDON_ID, msg), xbmc.LOGDEBUG)
+    xbmc.log("%s: %s" % (settings.ADDON_ID, msg), xbmc.LOGDEBUG)
 
 
 def escape_param(s):
@@ -38,20 +32,21 @@ def escape_param(s):
 
 
 def notify(msg1, msg2):
-    if SHOW_NOTIFICATIONS:
+    if settings.SHOW_NOTIFICATIONS:
         xbmc.executebuiltin("XBMC.Notification(Watchdog: %s,%s)" % (msg1, escape_param(msg2)))
 
 
 def select_observer(path):
     import observers
     if os.path.exists(path): #path from xbmc appears to always be utf-8 so if it contains non-ascii and os is not utf-8, this will fail
-        if POLLING:
+        if settings.POLLING:
             return observers.local_full()
         return observers.auto()
     elif re.match("^[A-Za-z]+://", path):
         if xbmcvfs.exists(path):
-            observer_cls = [observers.xbmc_depth_1, observers.xbmc_depth_2, observers.xbmc_full][POLLING_METHOD]
-            return observer_cls(POLLING_INTERVAL)
+            observer_cls = [observers.xbmc_depth_1, observers.xbmc_depth_2,
+                            observers.xbmc_full][settings.POLLING_METHOD]
+            return observer_cls(settings.POLLING_INTERVAL)
     return None
 
 
