@@ -17,7 +17,7 @@ import xbmc
 from functools import partial
 from watchdog.observers.api import EventEmitter, BaseObserver
 from watchdog.events import DirDeletedEvent, DirCreatedEvent
-from main import log
+from utils import log
 from main import PAUSE_ON_PLAYBACK
 
 def _paused():
