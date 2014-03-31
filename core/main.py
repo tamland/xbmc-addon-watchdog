@@ -174,7 +174,7 @@ def main():
     if settings.WATCH_MUSIC:
         threads.extend(watch('music', xbmc_actor))
     while not xbmc.abortRequested:
-        sleep(1)
+        xbmc.sleep(100)
     for th in threads:
         try:
             th.stop()
