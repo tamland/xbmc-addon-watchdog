@@ -14,6 +14,7 @@
 '''
 import os
 import xbmcvfs
+import settings
 from functools import partial
 from polling import *
 
@@ -37,16 +38,19 @@ def _get_mtime(path):
     return xbmcvfs.Stat(path).st_mtime()
 
 class PollerObserver_Depth1(PollingObserverBase):
-    def __init__(self, interval):
+    def __init__(self):
         make_snapshot = partial(SnapshotRootOnly, get_mtime=_get_mtime)
-        PollingObserverBase.__init__(self, make_snapshot, polling_interval=interval)
+        PollingObserverBase.__init__(self, make_snapshot,
+                                     polling_interval=settings.POLLING_INTERVAL)
 
 class PollerObserver_Depth2(PollingObserverBase):
-    def __init__(self, interval):
+    def __init__(self):
         make_snapshot = partial(SnapshotWithStat, walker=_walker_depth_1, get_mtime=_get_mtime)
-        PollingObserverBase.__init__(self, make_snapshot, polling_interval=interval)
+        PollingObserverBase.__init__(self, make_snapshot,
+                                     polling_interval=settings.POLLING_INTERVAL)
 
 class PollerObserver_Full(PollingObserverBase):
-    def __init__(self, interval):
+    def __init__(self):
         make_snapshot = partial(PathSnapshot, walker=_walker_recursive)
-        PollingObserverBase.__init__(self, make_snapshot, polling_interval=interval)
+        PollingObserverBase.__init__(self, make_snapshot,
+                                     polling_interval=settings.POLLING_INTERVAL)
