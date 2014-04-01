@@ -13,18 +13,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import os
-import re
 import traceback
 import threading
 import pykka
-import watchdog
 import xbmc
 import xbmcgui
-import xbmcaddon
-import xbmcvfs
 import utils
 import settings
-from utils import escape_param, notify, log
+from utils import escape_param, log
 from time import sleep
 from functools import partial
 from itertools import repeat
