@@ -61,7 +61,7 @@ def get_media_sources(media_type):
     ret = []
     if response.has_key('result'):
         if response['result'].has_key('sources'):
-            paths = [ e['file'] for e in response['result']['sources'] ]
+            paths = [e['file'] for e in response['result']['sources']]
             for path in paths:
                 #split and decode multipaths
                 if path.startswith("multipath://"):
