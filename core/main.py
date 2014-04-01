@@ -157,8 +157,6 @@ def main():
     threads = []
     for i, (libtype, path) in enumerate(sources):
         progress.update((i+1)/len(sources)*100, message="Setting up %s" % path)
-        if xbmc.abortRequested:
-            break
         try:
             fs_path, observer = utils.select_observer(path)
             event_queue = EventQueue.start(libtype, path, xbmc_actor).proxy()
