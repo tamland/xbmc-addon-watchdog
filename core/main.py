@@ -21,7 +21,6 @@ import xbmcgui
 import utils
 import settings
 from utils import escape_param, log
-from time import sleep
 from functools import partial
 from itertools import repeat
 from watchdog.events import FileSystemEventHandler
@@ -32,7 +31,7 @@ EXTENSIONS = "|.nsv|.m4a|.flac|.aac|.strm|.pls|.rm|.rma|.mpa|.wav|.wma|.ogg|.mp3
 class XBMCActor(pykka.ThreadingActor):
     """ Messaging interface to xbmc's executebuiltin calls """
     def _xbmc_is_busy(self):
-        sleep(1) # visibility cant be immediately trusted. Give xbmc time to render
+        xbmc.sleep(100) # visibility cant be immediately trusted. Give xbmc time to render
         return ((xbmc.Player().isPlaying() and settings.PAUSE_ON_PLAYBACK)
             or xbmc.getCondVisibility('Library.IsScanning')
             or xbmc.getCondVisibility('Window.IsActive(10101)'))
