@@ -70,10 +70,10 @@ class EventQueue(pykka.ThreadingActor):
     def _notify_worker(self, attr):
         if not(self.worker) or not(self.worker.is_alive()):
             self.worker = self.new_worker()
-            setattr(self.worker, attr, True)
+            getattr(self.worker, attr).set()
             self.worker.start()
         else:
-            setattr(self.worker, attr, True)
+            getattr(self.worker, attr).set()
 
     def scan(self):
         self._notify_worker('scan')
@@ -81,27 +81,31 @@ class EventQueue(pykka.ThreadingActor):
     def clean(self):
         self._notify_worker('clean')
 
+    def on_stop(self):
+        if self.worker is not None:
+            self.worker.abort.set()
+            self.worker.join()
+
     class Worker(threading.Thread):
-        """
-        To be able to safely skip incomming duplicate events, we need a
-        normal thread that sends a single message and waits for reply.
-        """
+        """ Sends messages to XBMCActor and waits for reply. """
         def __init__(self, ask):
             super(EventQueue.Worker, self).__init__()
             self.ask = ask
-            self.scan = False
-            self.clean = False
+            self.scan = threading.Event()
+            self.clean = threading.Event()
+            self.abort = threading.Event()
 
         def run(self):
-            sleep(settings.SCAN_DELAY)
+            if self.abort.wait(settings.SCAN_DELAY):
+                return
             while True:
-                if self.clean:
-                    self.ask('clean') # returns when scanning has started
-                    self.clean = False
-                if self.scan:
+                if self.clean.is_set():
+                    self.ask('clean')
+                    self.clean.clear()
+                if self.scan.is_set():
                     self.ask('scan')
-                    self.scan = False
-                if not(self.scan) and not(self.clean):
+                    self.scan.clear()
+                if not self.scan.is_set() and not self.clean.is_set():
                     return
 
 
