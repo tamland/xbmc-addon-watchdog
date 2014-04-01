@@ -68,7 +68,7 @@ class EventQueue(pykka.ThreadingActor):
         self.worker = None
 
     def _notify_worker(self, attr):
-        if not(self.worker) or not(self.worker.isAlive()):
+        if not(self.worker) or not(self.worker.is_alive()):
             self.worker = self.new_worker()
             setattr(self.worker, attr, True)
             self.worker.start()
@@ -165,7 +165,7 @@ def main():
             log("watching <%s> using %s" % (path, observer))
         except IOError:
             log("not watching <%s>. does not exist" % path)
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
             log("failed to watch <%s>" % path)
     progress.close()
@@ -175,9 +175,8 @@ def main():
     for th in threads:
         try:
             th.stop()
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
-            continue
     xbmc_actor.stop()
 
 if __name__ == "__main__":
