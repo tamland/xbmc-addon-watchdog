@@ -17,7 +17,7 @@ import os
 import xbmc
 import xbmcaddon
 import xbmcvfs
-import simplejson
+import simplejson as json
 from urllib import unquote
 import settings
 
@@ -36,6 +36,12 @@ def notify(msg1, msg2):
         xbmc.executebuiltin("XBMC.Notification(Watchdog: %s,%s)" % (msg1, escape_param(msg2)))
 
 
+def rpc(method, **params):
+    params = json.dumps(params)
+    query = '{"jsonrpc": "2.0", "method": "%s", "params": %s, "id": 1}' % (method, params)
+    return json.loads(xbmc.executeJSONRPC(query))
+
+
 def select_observer(path):
     import observers
     if os.path.exists(path): #path from xbmc appears to always be utf-8 so if it contains non-ascii and os is not utf-8, this will fail
@@ -50,14 +56,12 @@ def select_observer(path):
     return None
 
 
-def get_media_sources(type):
-    query = '{"jsonrpc": "2.0", "method": "Files.GetSources", "params": {"media": "%s"}, "id": 1}' % type
-    result = xbmc.executeJSONRPC(query)
-    json = simplejson.loads(result)
+def get_media_sources(media_type):
+    response = rpc("Files.GetSources", media=media_type)
     ret = []
-    if json.has_key('result'):
-        if json['result'].has_key('sources'):
-            paths = [ e['file'] for e in json['result']['sources'] ]
+    if response.has_key('result'):
+        if response['result'].has_key('sources'):
+            paths = [ e['file'] for e in response['result']['sources'] ]
             for path in paths:
                 #split and decode multipaths
                 if path.startswith("multipath://"):
