@@ -141,7 +141,8 @@ class EventHandler(FileSystemEventHandler):
 
 
 def main():
-    xbmc_actor = XBMCActor.start().proxy()
+    progress = xbmcgui.DialogProgressBG()
+    progress.create("Watchdog starting. Please wait...")
     sources = []
     if settings.WATCH_VIDEO:
         video_sources = utils.get_media_sources('video')
@@ -152,8 +153,10 @@ def main():
         sources.extend(zip(repeat('music'), music_sources))
         log("music sources %s" % music_sources)
 
+    xbmc_actor = XBMCActor.start().proxy()
     threads = []
-    for libtype, path in sources:
+    for i, (libtype, path) in enumerate(sources):
+        progress.update((i+1)/len(sources)*100, message="Setting up %s" % path)
         if xbmc.abortRequested:
             break
         observer = utils.select_observer(path)
@@ -169,11 +172,9 @@ def main():
             except Exception as e:
                 traceback.print_exc()
                 log("failed to watch <%s>" % path)
-                notify("Failed to watch", path)
-                continue
         else:
             log("not watching <%s>. does not exist" % path)
-            notify("Path does not exist", path)
+    progress.close()
 
     while not xbmc.abortRequested:
         xbmc.sleep(100)
