@@ -12,7 +12,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import time
 import xbmc
 from functools import partial
 from watchdog.observers.api import EventEmitter, BaseObserver
@@ -77,7 +76,8 @@ class Poller(EventEmitter):
         self._snapshot = make_snapshot(self.watch.path)
 
     def queue_events(self, timeout):
-        time.sleep(timeout)
+        if self.stopped_event.wait(timeout):
+            return
         if not _paused():
             new_snapshot = self._make_snapshot(self.watch.path)
             created, deleted, modified = self._snapshot.diff(new_snapshot)
