@@ -27,6 +27,7 @@ import settings
 from utils import escape_param, notify, log
 from time import sleep
 from functools import partial
+from itertools import repeat
 from watchdog.events import FileSystemEventHandler
 
 EXTENSIONS = "|.nsv|.m4a|.flac|.aac|.strm|.pls|.rm|.rma|.mpa|.wav|.wma|.ogg|.mp3|.mp2|.m3u|.mod|.amf|.669|.dmf|.dsm|.far|.gdm|.imf|.it|.m15|.med|.okt|.s3m|.stm|.sfx|.ult|.uni|.xm|.sid|.ac3|.dts|.cue|.aif|.aiff|.wpl|.ape|.mac|.mpc|.mp+|.mpp|.shn|.zip|.rar|.wv|.nsf|.spc|.gym|.adx|.dsp|.adp|.ymf|.ast|.afc|.hps|.xsp|.xwav|.waa|.wvs|.wam|.gcm|.idsp|.mpdsp|.mss|.spt|.rsd|.mid|.kar|.sap|.cmc|.cmr|.dmc|.mpt|.mpd|.rmt|.tmc|.tm8|.tm2|.oga|.url|.pxml|.tta|.rss|.cm3|.cms|.dlt|.brstm|.wtv|.mka|.m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.m3u|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.rar|.001|.wpl|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.wtv|.m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.m3u|.m3u8|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.rar|.001|.wpl|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.wtv|"
@@ -139,17 +140,26 @@ class EventHandler(FileSystemEventHandler):
         return False
 
 
-def watch(library, xbmc_actor):
+def main():
+    xbmc_actor = XBMCActor.start().proxy()
+    sources = []
+    if settings.WATCH_VIDEO:
+        video_sources = utils.get_media_sources('video')
+        sources.extend(zip(repeat('video'), video_sources))
+        log("video sources %s" % video_sources)
+    if settings.WATCH_MUSIC:
+        music_sources = utils.get_media_sources('music')
+        sources.extend(zip(repeat('music'), music_sources))
+        log("music sources %s" % music_sources)
+
     threads = []
-    sources = utils.get_media_sources(library)
-    log("%s sources %s" % (library, sources))
-    for path in sources:
+    for libtype, path in sources:
         if xbmc.abortRequested:
             break
         observer = utils.select_observer(path)
         if observer:
             try:
-                event_queue = EventQueue.start(library, path, xbmc_actor).proxy()
+                event_queue = EventQueue.start(libtype, path, xbmc_actor).proxy()
                 event_handler = EventHandler(event_queue)
                 observer.schedule(event_handler, path=path, recursive=settings.RECURSIVE)
                 observer.start()
@@ -164,15 +174,7 @@ def watch(library, xbmc_actor):
         else:
             log("not watching <%s>. does not exist" % path)
             notify("Path does not exist", path)
-    return threads
 
-def main():
-    xbmc_actor = XBMCActor.start().proxy()
-    threads = []
-    if settings.WATCH_VIDEO:
-        threads.extend(watch('video', xbmc_actor))
-    if settings.WATCH_MUSIC:
-        threads.extend(watch('music', xbmc_actor))
     while not xbmc.abortRequested:
         xbmc.sleep(100)
     for th in threads:
