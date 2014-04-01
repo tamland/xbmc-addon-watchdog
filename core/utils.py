@@ -14,6 +14,7 @@
 '''
 import re
 import os
+import sys
 import xbmc
 import xbmcaddon
 import xbmcvfs
@@ -43,17 +44,25 @@ def rpc(method, **params):
 
 
 def select_observer(path):
+    # path assumed to be utf-8 encoded string
     import observers
-    if os.path.exists(path): #path from xbmc appears to always be utf-8 so if it contains non-ascii and os is not utf-8, this will fail
+    if os.path.exists(path):
         if settings.POLLING:
-            return observers.local_full()
-        return observers.auto()
-    elif re.match("^[A-Za-z]+://", path):
-        if xbmcvfs.exists(path):
-            observer_cls = [observers.xbmc_depth_1, observers.xbmc_depth_2,
-                            observers.xbmc_full][settings.POLLING_METHOD]
-            return observer_cls(settings.POLLING_INTERVAL)
-    return None
+            return path, observers.get(observers.poller_local)
+        return path, observers.get(observers.preferred)
+
+    # try using fs encoding
+    path_alt = path.decode('utf-8').encode(sys.getfilesystemencoding())
+    if os.path.exists(path_alt):
+        if settings.POLLING:
+            return path_alt, observers.get(observers.poller_local)
+        return path_alt, observers.get(observers.preferred)
+
+    if xbmcvfs.exists(path):
+        cls = [observers.xbmc_depth_1, observers.xbmc_depth_2,
+               observers.xbmc_full][settings.POLLING_METHOD]
+        return path, observers.get(cls)
+    raise IOError("No such directory: '%s'" % path)
 
 
 def get_media_sources(media_type):

@@ -14,7 +14,7 @@
 '''
 from polling_local import PollerObserver_Depth1 as local_depth_1
 from polling_local import PollerObserver_Depth2 as local_depth_2
-from polling_local import PollerObserver_Full as local_full
+from polling_local import PollerObserver_Full as poller_local
 from polling_xbmc import PollerObserver_Depth1 as xbmc_depth_1
 from polling_xbmc import PollerObserver_Depth2 as xbmc_depth_2
 from polling_xbmc import PollerObserver_Full as xbmc_full
@@ -28,5 +28,12 @@ except:
         try:
             from watchdog.observers.read_directory_changes import WindowsApiObserver as _Observer
         except:
-            _Observer = local_full
-auto = _Observer
+            _Observer = poller_local
+
+preferred = _Observer
+_instances = {}
+
+def get(cls):
+    if cls not in _instances:
+        _instances[cls] = cls()
+    return _instances[cls]

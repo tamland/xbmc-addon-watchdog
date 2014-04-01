@@ -159,21 +159,21 @@ def main():
         progress.update((i+1)/len(sources)*100, message="Setting up %s" % path)
         if xbmc.abortRequested:
             break
-        observer = utils.select_observer(path)
-        if observer:
-            try:
-                event_queue = EventQueue.start(libtype, path, xbmc_actor).proxy()
-                event_handler = EventHandler(event_queue)
-                observer.schedule(event_handler, path=path, recursive=settings.RECURSIVE)
+        try:
+            fs_path, observer = utils.select_observer(path)
+            event_queue = EventQueue.start(libtype, path, xbmc_actor).proxy()
+            event_handler = EventHandler(event_queue)
+            observer.schedule(event_handler, path=fs_path, recursive=settings.RECURSIVE)
+            if not observer.is_alive():
                 observer.start()
                 threads.append(observer)
-                threads.append(event_queue)
-                log("watching <%s> using %s" % (path, observer))
-            except Exception as e:
-                traceback.print_exc()
-                log("failed to watch <%s>" % path)
-        else:
+            threads.append(event_queue)
+            log("watching <%s> using %s" % (path, observer))
+        except IOError:
             log("not watching <%s>. does not exist" % path)
+        except Exception as e:
+            traceback.print_exc()
+            log("failed to watch <%s>" % path)
     progress.close()
 
     while not xbmc.abortRequested:
