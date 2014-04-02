@@ -17,6 +17,7 @@
 # limitations under the License.
 
 
+import os
 import signal
 import subprocess
 import time
@@ -77,14 +78,20 @@ class ShellCommandTrick(Trick):
     """Execeutes shell commands in response to matched events."""
 
     def __init__(self, shell_command=None, patterns=None, ignore_patterns=None,
-                 ignore_directories=False, wait_for_process=False):
+                 ignore_directories=False, wait_for_process=False,
+                 no_parallel_processes=False):
         super(ShellCommandTrick, self).__init__(patterns, ignore_patterns,
                                                 ignore_directories)
         self.shell_command = shell_command
         self.wait_for_process = wait_for_process
+        self.no_parallel_processes = no_parallel_processes
+        self.process = None
 
     def on_any_event(self, event):
         from string import Template
+        
+        if self.no_parallel_processes and self.process and self.process.poll() is None:
+            return
 
         if event.is_directory:
             object_type = 'directory'
@@ -110,9 +117,9 @@ class ShellCommandTrick(Trick):
             command = self.shell_command
 
         command = Template(command).safe_substitute(**context)
-        process = subprocess.Popen(command, shell=True)
+        self.process = subprocess.Popen(command, shell=True)
         if self.wait_for_process:
-            process.wait()
+            self.process.wait()
 
 
 class AutoRestartTrick(Trick):
@@ -131,7 +138,7 @@ class AutoRestartTrick(Trick):
                  kill_after=10):
         super(AutoRestartTrick, self).__init__(
             patterns, ignore_patterns, ignore_directories)
-        self.command = command
+        self.command = ['setsid'] + command
         self.stop_signal = stop_signal
         self.kill_after = kill_after
         self.process = None
@@ -143,7 +150,7 @@ class AutoRestartTrick(Trick):
         if self.process is None:
             return
         try:
-            self.process.send_signal(self.stop_signal)
+            os.killpg(os.getpgid(self.process.pid), self.stop_signal)
         except OSError:
             # Process is already gone
             pass
@@ -155,7 +162,7 @@ class AutoRestartTrick(Trick):
                 time.sleep(0.25)
             else:
                 try:
-                    self.process.kill()
+                    os.killpg(os.getpgid(self.process.pid), 9)
                 except OSError:
                     # Process is already gone
                     pass
