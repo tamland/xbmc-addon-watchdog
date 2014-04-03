@@ -16,6 +16,5 @@
         <setting label="30020" id="pollinginterval" type="number" default="4"/>
         <setting label="30017" id="forceglobalscan" type="bool" default="false"/>
         <setting label="30018" type="lsep"/>
-        <setting label="30019" type="lsep"/>
     </category>
 </settings>
