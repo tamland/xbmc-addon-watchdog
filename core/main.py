@@ -20,7 +20,7 @@ import xbmc
 import xbmcgui
 import utils
 import settings
-from utils import escape_param, log
+from utils import escape_param, log, notify
 from functools import partial
 from itertools import repeat
 from watchdog.events import FileSystemEventHandler
@@ -173,9 +173,11 @@ def main():
             log("watching <%s> using %s" % (path, observer))
         except IOError:
             log("not watching <%s>. does not exist" % path)
+            notify("Path does not exist", path)
         except Exception:
             traceback.print_exc()
             log("failed to watch <%s>" % path)
+            notify("Failed to watch", path)
     progress.close()
 
     while not xbmc.abortRequested:
