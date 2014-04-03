@@ -31,7 +31,9 @@ SUPPORTED_MEDIA = '|' + xbmc.getSupportedMedia('video') + \
 
 class XBMCActor(pykka.ThreadingActor):
     """ Messaging interface to xbmc's executebuiltin calls """
-    def _xbmc_is_busy(self):
+
+    @staticmethod
+    def _xbmc_is_busy():
         xbmc.sleep(100) # visibility cant be immediately trusted. Give xbmc time to render
         return ((xbmc.Player().isPlaying() and settings.PAUSE_ON_PLAYBACK)
             or xbmc.getCondVisibility('Library.IsScanning')
@@ -131,7 +133,8 @@ class EventHandler(FileSystemEventHandler):
     def on_any_event(self, event):
         log("<%s> <%s>" % (event.event_type, event.src_path))
 
-    def _can_skip(self, event, path):
+    @staticmethod
+    def _can_skip(event, path):
         if not event.is_directory and path:
             _, ext = os.path.splitext(path)
             ext = ext.lower()
