@@ -1,3 +1,9 @@
+[B]0.8.0[/B]
+- added setting for changing network polling interval
+- added dialog for add-on start up progress
+- fix inotify not working on android
+- performance and stability improvements
+
 [B]0.7.6[/B]
 - fixed multiple issues with the depth 2 poller
 
