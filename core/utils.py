@@ -16,6 +16,7 @@ import os
 import sys
 import xbmc
 import xbmcvfs
+import xbmcgui
 import simplejson as json
 from urllib import unquote
 import settings
@@ -32,7 +33,9 @@ def escape_param(s):
 
 def notify(msg1, msg2):
     if settings.SHOW_NOTIFICATIONS:
-        xbmc.executebuiltin("XBMC.Notification(Watchdog: %s,%s)" % (msg1, escape_param(msg2)))
+        dialog = xbmcgui.Dialog()
+        dialog.notification("Watchdog: %s" % msg1, msg2,
+                            xbmcgui.NOTIFICATION_WARNING, 2000)
 
 
 def rpc(method, **params):
