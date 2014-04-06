@@ -179,6 +179,7 @@ def main():
             log("failed to watch <%s>" % path)
             notify("Failed to watch", path)
     progress.close()
+    log("initialization done")
 
     while not xbmc.abortRequested:
         xbmc.sleep(100)
