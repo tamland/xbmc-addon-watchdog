@@ -148,14 +148,14 @@ def main():
     progress = xbmcgui.DialogProgressBG()
     progress.create("Watchdog starting. Please wait...")
     sources = []
-    if settings.WATCH_VIDEO:
-        video_sources = utils.get_media_sources('video')
-        sources.extend(zip(repeat('video'), video_sources))
-        log("video sources %s" % video_sources)
-    if settings.WATCH_MUSIC:
-        music_sources = utils.get_media_sources('music')
-        sources.extend(zip(repeat('music'), music_sources))
-        log("music sources %s" % music_sources)
+
+    video_sources = settings.VIDEO_SOURCES
+    sources.extend(zip(repeat('video'), video_sources))
+    log("video sources %s" % video_sources)
+
+    music_sources = settings.MUSIC_SOURCES
+    sources.extend(zip(repeat('music'), music_sources))
+    log("music sources %s" % music_sources)
 
     xbmc_actor = XBMCActor.start().proxy()
     threads = []

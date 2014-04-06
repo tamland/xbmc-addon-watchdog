@@ -13,6 +13,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import xbmcaddon
+import utils
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
@@ -21,9 +22,28 @@ POLLING = int(ADDON.getSetting('method'))
 POLLING_METHOD = int(ADDON.getSetting('pollingmethod'))
 POLLING_INTERVAL = int("0"+ADDON.getSetting('pollinginterval')) or 4
 RECURSIVE = not (ADDON.getSetting('nonrecursive') == 'true') or not POLLING
-WATCH_VIDEO = ADDON.getSetting('watchvideo') == 'true'
-WATCH_MUSIC = ADDON.getSetting('watchmusic') == 'true'
 SCAN_DELAY = int("0"+ADDON.getSetting('delay')) or 1
 PAUSE_ON_PLAYBACK = ADDON.getSetting('pauseonplayback') == 'true'
 FORCE_GLOBAL_SCAN = ADDON.getSetting('forceglobalscan') == 'true'
 SHOW_NOTIFICATIONS = ADDON.getSetting('notifications') == 'true'
+
+
+if ADDON.getSetting('watchvideo') == 'true':
+    VIDEO_SOURCES = utils.get_media_sources('video')
+else:
+    VIDEO_SOURCES = [_ for _ in set([
+        ADDON.getSetting('videosource1'),
+        ADDON.getSetting('videosource2'),
+        ADDON.getSetting('videosource3'),
+        ADDON.getSetting('videosource4'),
+        ADDON.getSetting('videosource5')]) if _ != ""]
+
+if ADDON.getSetting('watchmusic') == 'true':
+    MUSIC_SOURCES = utils.get_media_sources('music')
+else:
+    MUSIC_SOURCES = [_ for _ in set([
+        ADDON.getSetting('musicsource1'),
+        ADDON.getSetting('musicsource2'),
+        ADDON.getSetting('musicsource3'),
+        ADDON.getSetting('musicsource4'),
+        ADDON.getSetting('musicsource5')]) if _ != ""]

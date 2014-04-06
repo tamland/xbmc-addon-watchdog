@@ -19,10 +19,10 @@ import xbmcvfs
 import xbmcgui
 import simplejson as json
 from urllib import unquote
-import settings
 
 
 def log(msg):
+    import settings
     xbmc.log("%s: %s" % (settings.ADDON_ID, msg), xbmc.LOGDEBUG)
 
 
@@ -32,6 +32,7 @@ def escape_param(s):
 
 
 def notify(msg1, msg2):
+    import settings
     if settings.SHOW_NOTIFICATIONS:
         dialog = xbmcgui.Dialog()
         dialog.notification("Watchdog: %s" % msg1, msg2,
@@ -46,6 +47,7 @@ def rpc(method, **params):
 
 def select_observer(path):
     # path assumed to be utf-8 encoded string
+    import settings
     import observers
     if os.path.exists(path):
         if settings.POLLING:
