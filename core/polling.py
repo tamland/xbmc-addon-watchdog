@@ -73,9 +73,11 @@ class Poller(EventEmitter):
     def __init__(self, event_queue, watch, make_snapshot, timeout):
         EventEmitter.__init__(self, event_queue, watch, timeout)
         self._make_snapshot = make_snapshot
-        self._snapshot = make_snapshot(self.watch.path)
+        self._snapshot = None
 
     def queue_events(self, timeout):
+        if self._snapshot is None:
+            self._snapshot = self._make_snapshot(self.watch.path)
         if self.stopped_event.wait(timeout):
             return
         if not _paused():
