@@ -1,4 +1,5 @@
 [B]0.8.0[/B]
+- added settings for manually select folders to watch
 - added setting for changing network polling interval
 - added dialog for add-on start up progress
 - fix inotify not working on android
