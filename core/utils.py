@@ -55,11 +55,16 @@ def select_observer(path):
         return path, observers.get(observers.preferred)
 
     # try using fs encoding
-    path_alt = path.decode('utf-8').encode(sys.getfilesystemencoding())
-    if os.path.exists(path_alt):
-        if settings.POLLING:
-            return path_alt, observers.get(observers.poller_local)
-        return path_alt, observers.get(observers.preferred)
+    fsenc = sys.getfilesystemencoding()
+    if fsenc:
+        try:
+            path_alt = path.decode('utf-8').encode(fsenc)
+        except UnicodeEncodeError:
+            path_alt = None
+        if path_alt and os.path.exists(path_alt):
+            if settings.POLLING:
+                return path_alt, observers.get(observers.poller_local)
+            return path_alt, observers.get(observers.preferred)
 
     if xbmcvfs.exists(path):
         cls = [observers.xbmc_depth_1, observers.xbmc_depth_2,
