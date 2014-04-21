@@ -173,11 +173,12 @@ def main():
             log("watching <%s> using %s" % (path, observer))
         except IOError:
             log("not watching <%s>. does not exist" % path)
-            notify("Path does not exist", path)
+            notify("Could not find path", path)
         except Exception:
             traceback.print_exc()
             log("failed to watch <%s>" % path)
-            notify("Failed to watch", path)
+            notify("Failed to watch %s" % path, "See log for details")
+
     progress.close()
     log("initialization done")
 
