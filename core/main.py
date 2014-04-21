@@ -164,12 +164,12 @@ def main():
         try:
             fs_path, observer = utils.select_observer(path)
             event_queue = EventQueue.start(libtype, path, xbmc_actor).proxy()
+            threads.append(event_queue)
             event_handler = EventHandler(event_queue)
             observer.schedule(event_handler, path=fs_path, recursive=settings.RECURSIVE)
             if not observer.is_alive():
                 observer.start()
                 threads.append(observer)
-            threads.append(event_queue)
             log("watching <%s> using %s" % (path, observer))
         except IOError:
             log("not watching <%s>. does not exist" % path)
