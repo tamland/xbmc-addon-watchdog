@@ -149,17 +149,19 @@ def main():
         progress.update((i+1)/len(sources)*100, message="Setting up %s" % path)
         try:
             fs_path, observer = utils.select_observer(path)
-            event_handler = EventHandler(libtype, path, xbmc_actor)
-            event_handler.start()
-            threads.append(event_handler)
+        except IOError:
+            log("not watching <%s>. does not exist" % path)
+            notify("Could not find path", path)
+            continue
+        event_handler = EventHandler(libtype, path, xbmc_actor)
+        event_handler.start()
+        threads.append(event_handler)
+        try:
             observer.schedule(event_handler, path=fs_path, recursive=settings.RECURSIVE)
             if not observer.is_alive():
                 observer.start()
                 threads.append(observer)
             log("watching <%s> using %s" % (path, observer))
-        except IOError:
-            log("not watching <%s>. does not exist" % path)
-            notify("Could not find path", path)
         except Exception:
             traceback.print_exc()
             log("failed to watch <%s>" % path)
