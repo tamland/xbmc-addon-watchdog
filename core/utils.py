@@ -85,6 +85,6 @@ def get_media_sources(media_type):
                     for e in path.split("multipath://")[1].split('/'):
                         if e != "":
                             ret.append(unquote(e).encode('utf-8'))
-                else:
+                elif not path.startswith("upnp://"):
                     ret.append(path.encode('utf-8'))
     return ret
