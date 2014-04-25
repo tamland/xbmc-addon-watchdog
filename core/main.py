@@ -21,7 +21,6 @@ import xbmcgui
 import utils
 import settings
 from utils import escape_param, log, notify
-from functools import partial
 from itertools import repeat
 from watchdog.events import FileSystemEventHandler
 
@@ -57,78 +56,42 @@ class XBMCActor(pykka.ThreadingActor):
         xbmc.executebuiltin("CleanLibrary(%s)" % library)
 
 
-class EventQueue(pykka.ThreadingActor):
-    """ Handles all raw incomming events for single root path and library. """
+class EventHandler(threading.Thread, FileSystemEventHandler):
+    """
+    Handles raw incomming events for single root path and library
+    and forward scan/clean commands to the xbmc actor singleton.
+
+    Commands are skipped base on settings and the path the event comes from.
+    Additionally, 'batches' of events that occure before cleaning/scanning has
+    started are accumulated into one call.
+    """
+
     def __init__(self, library, path, xbmc_actor):
-        super(EventQueue, self).__init__()
-        def ask(msg):
-            if msg == 'scan':
-                return xbmc_actor.scan(library, path).get()
-            elif msg == 'clean':
-                return xbmc_actor.clean(library, path).get()
-        self.new_worker = partial(EventQueue.Worker, ask)
-        self.worker = None
-
-    def _notify_worker(self, attr):
-        if not(self.worker) or not(self.worker.is_alive()):
-            self.worker = self.new_worker()
-            getattr(self.worker, attr).set()
-            self.worker.start()
-        else:
-            getattr(self.worker, attr).set()
-
-    def scan(self):
-        self._notify_worker('scan')
-
-    def clean(self):
-        self._notify_worker('clean')
-
-    def on_stop(self):
-        if self.worker is not None:
-            self.worker.abort.set()
-            self.worker.join()
-
-    class Worker(threading.Thread):
-        """ Sends messages to XBMCActor and waits for reply. """
-        def __init__(self, ask):
-            super(EventQueue.Worker, self).__init__()
-            self.ask = ask
-            self.scan = threading.Event()
-            self.clean = threading.Event()
-            self.abort = threading.Event()
-
-        def run(self):
-            if self.abort.wait(settings.SCAN_DELAY):
-                return
-            while True:
-                if self.clean.is_set():
-                    self.ask('clean')
-                    self.clean.clear()
-                if self.scan.is_set():
-                    self.ask('scan')
-                    self.scan.clear()
-                if not self.scan.is_set() and not self.clean.is_set():
-                    return
-
-
-class EventHandler(FileSystemEventHandler):
-    def __init__(self, event_queue):
-        super(EventHandler, self).__init__()
-        self.event_queue = event_queue
+        threading.Thread.__init__(self)
+        FileSystemEventHandler.__init__(self)
+        self.library = library
+        self.path = path
+        self.xbmc = xbmc_actor
+        self.stop_event = threading.Event()
+        self.new_event = threading.Event()
+        self.clean_event = threading.Event()
+        self.scan_event = threading.Event()
 
     def on_created(self, event):
         if not self._can_skip(event, event.src_path):
-            self.event_queue.scan()
+            self.scan_event.set()
+            self.new_event.set()
 
     def on_deleted(self, event):
         if settings.CLEAN and not self._can_skip(event, event.src_path):
-            self.event_queue.clean()
+            self.clean_event.set()
+            self.new_event.set()
 
     def on_moved(self, event):
-        if settings.CLEAN and not self._can_skip(event, event.src_path):
-            self.event_queue.clean()
+        self.on_deleted(event)
         if not self._can_skip(event, event.dest_path):
-            self.event_queue.scan()
+            self.scan_event.set()
+            self.new_event.set()
 
     def on_any_event(self, event):
         log("<%s> <%s>" % (event.event_type, event.src_path))
@@ -142,6 +105,29 @@ class EventHandler(FileSystemEventHandler):
                 log("skipping <%s> <%s>" % (event.event_type, path))
                 return True
         return False
+
+    def stop(self):
+        self.stop_event.set()
+        self.new_event.set()
+
+    def run(self):
+        while True:
+            self.new_event.wait()
+            if self.stop_event.wait(settings.SCAN_DELAY):
+                return
+
+            if self.clean_event.is_set():
+                self.xbmc.clean(self.library, self.path)
+                self.clean_event.clear()
+
+            if self.stop_event.is_set():
+                return
+
+            if self.scan_event.is_set():
+                self.xbmc.scan(self.library, self.path)
+                # Scan started. All events occurring from here on out may not
+                # be picked up by scanner and will require a new scan.
+                self.scan_event.clear()
 
 
 def main():
@@ -163,9 +149,9 @@ def main():
         progress.update((i+1)/len(sources)*100, message="Setting up %s" % path)
         try:
             fs_path, observer = utils.select_observer(path)
-            event_queue = EventQueue.start(libtype, path, xbmc_actor).proxy()
-            threads.append(event_queue)
-            event_handler = EventHandler(event_queue)
+            event_handler = EventHandler(libtype, path, xbmc_actor)
+            event_handler.start()
+            threads.append(event_handler)
             observer.schedule(event_handler, path=fs_path, recursive=settings.RECURSIVE)
             if not observer.is_alive():
                 observer.start()
