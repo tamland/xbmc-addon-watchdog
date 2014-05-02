@@ -6,6 +6,9 @@
 - improved startup and shutdown performance
 - performance and stability improvements
 
+[B]0.7.7[/B]
+- fixed: add-on sometimes failing to start on android, causing xbmc to hang on exit
+
 [B]0.7.6[/B]
 - fixed multiple issues with the depth 2 poller
 
