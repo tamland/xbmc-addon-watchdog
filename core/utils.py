@@ -17,6 +17,7 @@ import sys
 import xbmc
 import xbmcvfs
 import xbmcgui
+import subprocess
 import simplejson as json
 from urllib import unquote
 
@@ -52,6 +53,9 @@ def select_observer(path):
     if os.path.exists(path):
         if settings.POLLING:
             return path, observers.get(observers.poller_local)
+        elif _is_remote_filesystem(path):
+            log("select_observer: path <%s> identified as remote filesystem" % path)
+            return path, observers.get(observers.poller_local)
         return path, observers.get(observers.preferred)
 
     # try using fs encoding
@@ -71,6 +75,25 @@ def select_observer(path):
                observers.xbmc_full][settings.POLLING_METHOD]
         return path, observers.get(cls)
     raise IOError("No such directory: '%s'" % path)
+
+
+def _is_remote_filesystem(path):
+    from watchdog.utils import platform
+    REMOTE_FSTYPES = '|cifs|smbfs|nfs|nfs4|'
+    if platform.is_linux():
+        try:
+            df = subprocess.Popen(['df', '--output=fstype', path],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = df.communicate()
+            if df.returncode == 0:
+                fstype = stdout.rstrip('\n').split('\n')[1]
+                log("df. fstype of <%s> is %s" % (path, fstype))
+                return fstype and REMOTE_FSTYPES.find('|%s|' % fstype) != -1
+            else:
+                log("df returned %d, %s" % (df.returncode, stderr))
+        except Exception as e:
+            log("df failed. %s, %s" % (type(e), e))
+    return False
 
 
 def get_media_sources(media_type):
