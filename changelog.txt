@@ -3,8 +3,8 @@
 - added setting for changing network polling interval
 - added dialog for add-on start up progress
 - many performance and stability improvements including faster startup and shutdown
-- android: fixed inotify not working on
-- linux: polling now auto-selected for smb/nfs shares mounted outside of xbmc
+- fixed inotify never working on android
+- polling now auto-selected for mounted smb/nfs shares (linux)
 
 [B]0.7.7[/B]
 - fixed: add-on sometimes failing to start on android, causing xbmc to hang on exit
