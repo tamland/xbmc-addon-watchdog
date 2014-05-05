@@ -172,8 +172,9 @@ def main():
 
     while not xbmc.abortRequested:
         xbmc.sleep(100)
-    for th in threads:
+    for i, th in enumerate(threads):
         try:
+            log("stopping thread %d of %d" % (i+1, len(threads)))
             th.stop()
         except Exception:
             traceback.print_exc()
