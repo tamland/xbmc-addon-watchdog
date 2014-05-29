@@ -97,8 +97,21 @@ class EventHandler(threading.Thread, FileSystemEventHandler):
         log("<%s> <%s>" % (event.event_type, event.src_path))
 
     @staticmethod
-    def _can_skip(event, path):
-        if not event.is_directory and path:
+    def _is_hidden(path):
+        dirs = path.split(os.sep)
+        for d in dirs:
+            if d.startswith('.'):
+                return True
+        return False
+
+    def _can_skip(self, event, path):
+        if not path:
+            return False
+        relpath = path[len(self.path):] if path.startswith(self.path) else path
+        if self._is_hidden(relpath):
+            log("skipping <%s> <%s>" % (event.event_type, path))
+            return True
+        if not event.is_directory:
             _, ext = os.path.splitext(path)
             ext = ext.lower()
             if SUPPORTED_MEDIA.find('|%s|' % ext) == -1:
