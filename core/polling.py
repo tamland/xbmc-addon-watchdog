@@ -23,7 +23,7 @@ def _paused():
     return xbmc.Player().isPlaying() and settings.PAUSE_ON_PLAYBACK
 
 def hidden(path):
-    return path.startswith('.')
+    return path.startswith('.') or path.startswith('_UNPACK')
 
 class SnapshotRootOnly(object):
     def __init__(self, root, get_mtime):

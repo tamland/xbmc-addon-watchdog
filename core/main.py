@@ -100,7 +100,7 @@ class EventHandler(threading.Thread, FileSystemEventHandler):
     def _is_hidden(path):
         dirs = path.split(os.sep)
         for d in dirs:
-            if d.startswith('.'):
+            if d.startswith('.') or d.startswith('_UNPACK'):
                 return True
         return False
 
