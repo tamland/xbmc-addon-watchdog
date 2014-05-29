@@ -156,6 +156,9 @@ def main():
     sources.extend(zip(repeat('music'), music_sources))
     log("music sources %s" % music_sources)
 
+    if not sources:
+        notify("Nothing to watch", "No media source found")
+
     xbmc_actor = XBMCActor.start().proxy()
     threads = []
     for i, (libtype, path) in enumerate(sources):
