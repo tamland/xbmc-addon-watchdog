@@ -58,11 +58,11 @@ class XBMCActor(pykka.ThreadingActor):
 
 class EventHandler(threading.Thread, FileSystemEventHandler):
     """
-    Handles raw incomming events for single root path and library
+    Handles raw incoming events for single root path and library
     and forward scan/clean commands to the xbmc actor singleton.
 
     Commands are skipped base on settings and the path the event comes from.
-    Additionally, 'batches' of events that occure before cleaning/scanning has
+    Additionally, 'batches' of events that occur before cleaning/scanning has
     started are accumulated into one call.
     """
 
