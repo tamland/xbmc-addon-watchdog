@@ -45,22 +45,14 @@ def _get_mtime(path):
     return xbmcvfs.Stat(path).st_mtime()
 
 
-class PollerObserver_Depth1(PollingObserverBase):
-    def __init__(self):
-        make_snapshot = partial(SnapshotRootOnly, get_mtime=_get_mtime)
-        PollingObserverBase.__init__(self, make_snapshot,
-                                     polling_interval=settings.POLLING_INTERVAL)
+class XBMCVFSPoller(PollerBase):
+    interval = settings.POLLING_INTERVAL
+    make_snapshot = partial(FileSnapshot, walker=_walker_recursive)
 
 
-class PollerObserver_Depth2(PollingObserverBase):
-    def __init__(self):
-        make_snapshot = partial(SnapshotWithStat, walker=_walker_depth_1, get_mtime=_get_mtime)
-        PollingObserverBase.__init__(self, make_snapshot,
-                                     polling_interval=settings.POLLING_INTERVAL)
+class XBMCVFSPollerDepth1(XBMCVFSPoller):
+    make_snapshot = partial(SnapshotRootOnly, get_mtime=_get_mtime)
 
 
-class PollerObserver_Full(PollingObserverBase):
-    def __init__(self):
-        make_snapshot = partial(FileSnapshot, walker=_walker_recursive)
-        PollingObserverBase.__init__(self, make_snapshot,
-                                     polling_interval=settings.POLLING_INTERVAL)
+class XBMCVFSPollerDepth2(XBMCVFSPoller):
+    make_snapshot = partial(SnapshotWithStat, walker=_walker_depth_1, get_mtime=_get_mtime)

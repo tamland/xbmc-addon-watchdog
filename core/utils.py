@@ -49,17 +49,17 @@ def rpc(method, **params):
     return json.loads(xbmc.executeJSONRPC(query))
 
 
-def select_observer(path):
+def select_emitter(path):
     # path assumed to be utf-8 encoded string
     import settings
     import observers
     if os.path.exists(path):
         if settings.POLLING:
-            return path, observers.get(observers.poller_local)
+            return path, observers.LocalPoller
         elif _is_remote_filesystem(path):
             log("select_observer: path <%s> identified as remote filesystem" % path)
-            return path, observers.get(observers.poller_local)
-        return path, observers.get(observers.preferred)
+            return path, observers.LocalPoller
+        return path, observers.NativeEmitter
 
     # try using fs encoding
     fsenc = sys.getfilesystemencoding()
@@ -70,13 +70,13 @@ def select_observer(path):
             path_alt = None
         if path_alt and os.path.exists(path_alt):
             if settings.POLLING:
-                return path_alt, observers.get(observers.poller_local)
-            return path_alt, observers.get(observers.preferred)
+                return path_alt, observers.LocalPoller
+            return path_alt, observers.NativeEmitter
 
     if xbmcvfs.exists(path):
-        cls = [observers.xbmc_depth_1, observers.xbmc_depth_2,
-               observers.xbmc_full][settings.POLLING_METHOD]
-        return path, observers.get(cls)
+        options = [observers.XBMCVFSPollerDepth1,
+                   observers.XBMCVFSPollerDepth2, observers.XBMCVFSPoller]
+        return path, options[settings.POLLING_METHOD]
     raise IOError("No such directory: '%s'" % path)
 
 

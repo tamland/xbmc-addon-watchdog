@@ -78,19 +78,21 @@ class SnapshotWithStat(object):
         return created_files | created_dirs, deleted_files | deleted_dirs, modified_dirs
 
 
-class Poller(EventEmitter):
-    def __init__(self, event_queue, watch, make_snapshot, timeout):
+class PollerBase(EventEmitter):
+    make_snapshot = None
+    interval = -1
+
+    def __init__(self, event_queue, watch, timeout=1):
         EventEmitter.__init__(self, event_queue, watch, timeout)
-        self._make_snapshot = make_snapshot
         self._snapshot = None
 
     def queue_events(self, timeout):
         if self._snapshot is None:
-            self._snapshot = self._make_snapshot(self.watch.path)
+            self._snapshot = self.make_snapshot(self.watch.path)
         if self.stopped_event.wait(timeout):
             return
         if not _paused():
-            new_snapshot = self._make_snapshot(self.watch.path)
+            new_snapshot = self.make_snapshot(self.watch.path)
             created, deleted, modified = self._snapshot.diff(new_snapshot)
             self._snapshot = new_snapshot
 
@@ -105,9 +107,3 @@ class Poller(EventEmitter):
                 self.queue_event(DirDeletedEvent(self.watch.path + '*'))
             if modified or created:
                 self.queue_event(DirCreatedEvent(self.watch.path + '*'))
-
-
-class PollingObserverBase(BaseObserver):
-    def __init__(self, make_snapshot, polling_interval=1):
-        constructor = partial(Poller, make_snapshot=make_snapshot)
-        BaseObserver.__init__(self, constructor, polling_interval)

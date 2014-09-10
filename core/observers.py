@@ -15,26 +15,37 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from polling_local import PollerObserver_Full as poller_local
-from polling_xbmc import PollerObserver_Depth1 as xbmc_depth_1
-from polling_xbmc import PollerObserver_Depth2 as xbmc_depth_2
-from polling_xbmc import PollerObserver_Full as xbmc_full
+from watchdog.observers.api import BaseObserver
+from watchdog.observers.api import ObservedWatch
+from polling_local import LocalPoller
+from polling_xbmc import XBMCVFSPoller, XBMCVFSPollerDepth1, XBMCVFSPollerDepth2
+
+__all__ = ['LocalPoller', 'XBMCVFSPoller', 'XBMCVFSPollerDepth1',
+           'XBMCVFSPollerDepth2', 'NativeEmitter', 'MultiEmitterObserver']
 
 try:
-    from watchdog.observers.inotify import InotifyObserver as _Observer
+    from watchdog.observers.inotify import InotifyEmitter as NativeEmitter
 except:
     try:
-        from watchdog.observers.kqueue import KqueueObserver as _Observer
+        from watchdog.observers.kqueue import KqueueEmitter as NativeEmitter
     except:
         try:
-            from watchdog.observers.read_directory_changes import WindowsApiObserver as _Observer
+            from watchdog.observers.read_directory_changes import WindowsApiEmitter as NativeEmitter
         except:
-            _Observer = poller_local
+            NativeEmitter = LocalPoller
 
-preferred = _Observer
-_instances = {}
 
-def get(cls):
-    if cls not in _instances:
-        _instances[cls] = cls()
-    return _instances[cls]
+class MultiEmitterObserver(BaseObserver):
+    def __init__(self):
+        BaseObserver.__init__(self, None)
+
+    def schedule(self, event_handler, path, emitter_cls=None):
+        with self._lock:
+            watch = ObservedWatch(path, True)
+            emitter = emitter_cls(self.event_queue, watch, self.timeout)
+            if self.is_alive():
+                emitter.start()
+            self._add_handler_for_watch(event_handler, watch)
+            self._add_emitter(emitter)
+            self._watches.add(watch)
+            return watch

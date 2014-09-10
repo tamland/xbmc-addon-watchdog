@@ -26,6 +26,7 @@ import settings
 from utils import escape_param, log, notify
 from itertools import repeat
 from watchdog.events import FileSystemEventHandler
+from observers import MultiEmitterObserver
 
 SUPPORTED_MEDIA = '|' + xbmc.getSupportedMedia('video') + \
                   '|' + xbmc.getSupportedMedia('music') + '|'
@@ -171,24 +172,24 @@ def main():
         notify("Nothing to watch", "No media source found")
 
     xbmc_actor = XBMCActor.start().proxy()
-    threads = []
+    observer = MultiEmitterObserver()
+    observer.start()
+    event_handlers = []
+
     for i, (libtype, path) in enumerate(sources):
         progress.update((i+1)/len(sources)*100, message="Setting up %s" % path)
         try:
-            fs_path, observer = utils.select_observer(path)
+            fs_path, emitter_cls = utils.select_emitter(path)
         except IOError:
             log("not watching <%s>. does not exist" % path)
             notify("Could not find path", path)
             continue
-        event_handler = EventHandler(libtype, path, xbmc_actor)
-        event_handler.start()
-        threads.append(event_handler)
+        eh = EventHandler(libtype, path, xbmc_actor)
+        eh.start()
+        event_handlers.append(eh)
         try:
-            observer.schedule(event_handler, path=fs_path, recursive=settings.RECURSIVE)
-            if not observer.is_alive():
-                observer.start()
-                threads.append(observer)
-            log("watching <%s> using %s" % (path, observer))
+            observer.schedule(eh, path=fs_path, emitter_cls=emitter_cls)
+            log("watching <%s> using %s" % (path, emitter_cls))
         except Exception:
             traceback.print_exc()
             log("failed to watch <%s>" % path)
@@ -199,13 +200,17 @@ def main():
 
     while not xbmc.abortRequested:
         xbmc.sleep(100)
-    for i, th in enumerate(threads):
+
+    log("stopping..")
+    observer.stop()
+    for i, th in enumerate(event_handlers):
         try:
-            log("stopping thread %d of %d" % (i+1, len(threads)))
+            log("stopping event handler %d of %d" % (i+1, len(event_handlers)))
             th.stop()
         except Exception:
             traceback.print_exc()
     xbmc_actor.stop()
+    observer.join()
 
 if __name__ == "__main__":
     main()
