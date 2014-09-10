@@ -52,14 +52,14 @@ def rpc(method, **params):
 def select_emitter(path):
     # path assumed to be utf-8 encoded string
     import settings
-    import observers
+    import emitters
     if os.path.exists(path):
         if settings.POLLING:
-            return path, observers.LocalPoller
+            return path, emitters.LocalPoller
         elif _is_remote_filesystem(path):
             log("select_observer: path <%s> identified as remote filesystem" % path)
-            return path, observers.LocalPoller
-        return path, observers.NativeEmitter
+            return path, emitters.LocalPoller
+        return path, emitters.NativeEmitter
 
     # try using fs encoding
     fsenc = sys.getfilesystemencoding()
@@ -70,12 +70,13 @@ def select_emitter(path):
             path_alt = None
         if path_alt and os.path.exists(path_alt):
             if settings.POLLING:
-                return path_alt, observers.LocalPoller
-            return path_alt, observers.NativeEmitter
+                return path_alt, emitters.LocalPoller
+            return path_alt, emitters.NativeEmitter
 
     if xbmcvfs.exists(path):
-        options = [observers.XBMCVFSPollerDepth1,
-                   observers.XBMCVFSPollerDepth2, observers.XBMCVFSPoller]
+        options = [emitters.XBMCVFSPollerDepth1,
+                   emitters.XBMCVFSPollerDepth2,
+                   emitters.XBMCVFSPoller]
         return path, options[settings.POLLING_METHOD]
     raise IOError("No such directory: '%s'" % path)
 

@@ -26,7 +26,7 @@ import settings
 from utils import escape_param, log, notify
 from itertools import repeat
 from watchdog.events import FileSystemEventHandler
-from observers import MultiEmitterObserver
+from emitters import MultiEmitterObserver
 
 SUPPORTED_MEDIA = '|' + xbmc.getSupportedMedia('video') + \
                   '|' + xbmc.getSupportedMedia('music') + '|'
