@@ -42,18 +42,6 @@ def _get_mtime(path):
     return os.stat(path).st_mtime
 
 
-class PollerObserver_Depth1(PollingObserverBase):
-    def __init__(self):
-        make_snapshot = partial(SnapshotRootOnly, get_mtime=_get_mtime)
-        PollingObserverBase.__init__(self, make_snapshot, polling_interval=1)
-
-
-class PollerObserver_Depth2(PollingObserverBase):
-    def __init__(self):
-        make_snapshot = partial(SnapshotWithStat, walker=_walker_depth_1, get_mtime=_get_mtime)
-        PollingObserverBase.__init__(self, make_snapshot, polling_interval=1)
-
-
 class PollerObserver_Full(PollingObserverBase):
     def __init__(self):
         make_snapshot = partial(FileSnapshot, walker=_walker_recursive)
