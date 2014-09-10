@@ -18,8 +18,10 @@ import settings
 from functools import partial
 from polling import *
 
+
 def _join_path(base, lst):
     return [ os.path.join(base, _) for _ in lst if not hidden(_) ]
+
 
 def _walker_recursive(top):
     dirs, files = xbmcvfs.listdir(top) #returns utf-8 encoded str
@@ -30,12 +32,15 @@ def _walker_recursive(top):
         for dirs, files in _walker_recursive(d):
             yield dirs, files
 
+
 def _walker_depth_1(top):
     dirs, files = xbmcvfs.listdir(top) #returns utf-8 encoded str
     yield _join_path(top, dirs), _join_path(top, files)
 
+
 def _get_mtime(path):
     return xbmcvfs.Stat(path).st_mtime()
+
 
 class PollerObserver_Depth1(PollingObserverBase):
     def __init__(self):
@@ -43,11 +48,13 @@ class PollerObserver_Depth1(PollingObserverBase):
         PollingObserverBase.__init__(self, make_snapshot,
                                      polling_interval=settings.POLLING_INTERVAL)
 
+
 class PollerObserver_Depth2(PollingObserverBase):
     def __init__(self):
         make_snapshot = partial(SnapshotWithStat, walker=_walker_depth_1, get_mtime=_get_mtime)
         PollingObserverBase.__init__(self, make_snapshot,
                                      polling_interval=settings.POLLING_INTERVAL)
+
 
 class PollerObserver_Full(PollingObserverBase):
     def __init__(self):

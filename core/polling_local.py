@@ -16,6 +16,7 @@ import os
 from functools import partial
 from polling import *
 
+
 def _walker_recursive(top):
     for root, dirs, files in os.walk(top):
         if dirs or files:
@@ -26,24 +27,29 @@ def _walker_recursive(top):
             files = (os.path.join(root, _) for _ in files if not hidden(_))
             yield dirs, files
 
+
 def _walker_depth_1(top):
     names = [ os.path.join(top, name) for name in os.listdir(top) if not hidden(name)]
     dirs = [ name for name in names if os.path.isdir(name) ]
     files = [ name for name in names if not os.path.isdir(name) ]
     yield dirs, files
 
+
 def _get_mtime(path):
     return os.stat(path).st_mtime
+
 
 class PollerObserver_Depth1(PollingObserverBase):
     def __init__(self):
         make_snapshot = partial(SnapshotRootOnly, get_mtime=_get_mtime)
         PollingObserverBase.__init__(self, make_snapshot, polling_interval=1)
 
+
 class PollerObserver_Depth2(PollingObserverBase):
     def __init__(self):
         make_snapshot = partial(SnapshotWithStat, walker=_walker_depth_1, get_mtime=_get_mtime)
         PollingObserverBase.__init__(self, make_snapshot, polling_interval=1)
+
 
 class PollerObserver_Full(PollingObserverBase):
     def __init__(self):

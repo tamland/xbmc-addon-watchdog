@@ -19,11 +19,14 @@ from watchdog.events import DirDeletedEvent, DirCreatedEvent
 from utils import log
 import settings
 
+
 def _paused():
     return xbmc.Player().isPlaying() and settings.PAUSE_ON_PLAYBACK
 
+
 def hidden(path):
     return path.startswith('.') or path.startswith('_UNPACK')
+
 
 class SnapshotRootOnly(object):
     def __init__(self, root, get_mtime):
@@ -33,6 +36,7 @@ class SnapshotRootOnly(object):
     def diff(self, other):
         modified = [self._root] if self._mtime != other._mtime else []
         return [], [], modified
+
 
 class FileSnapshot(object):
     def __init__(self, root, walker):
@@ -44,6 +48,7 @@ class FileSnapshot(object):
         created = other._files - self._files
         deleted = self._files - other._files
         return created, deleted, []
+
 
 class SnapshotWithStat(object):
     def __init__(self, root, walker, get_mtime):
@@ -68,6 +73,7 @@ class SnapshotWithStat(object):
             if self._stat_info[path] != other._stat_info[path]:
                 modified_dirs.append(path)
         return created_files | created_dirs, deleted_files | deleted_dirs, modified_dirs
+
 
 class Poller(EventEmitter):
     def __init__(self, event_queue, watch, make_snapshot, timeout):
@@ -96,6 +102,7 @@ class Poller(EventEmitter):
                 self.queue_event(DirDeletedEvent(self.watch.path + '*'))
             if modified or created:
                 self.queue_event(DirCreatedEvent(self.watch.path + '*'))
+
 
 class PollingObserverBase(BaseObserver):
     def __init__(self, make_snapshot, polling_interval=1):
