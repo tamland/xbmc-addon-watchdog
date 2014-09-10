@@ -34,7 +34,7 @@ class SnapshotRootOnly(object):
         modified = [self._root] if self._mtime != other._mtime else []
         return [], [], modified
 
-class PathSnapshot(object):
+class FileSnapshot(object):
     def __init__(self, root, walker):
         self._files = set()
         for dirs, files in walker(root):

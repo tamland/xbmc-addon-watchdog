@@ -51,6 +51,6 @@ class PollerObserver_Depth2(PollingObserverBase):
 
 class PollerObserver_Full(PollingObserverBase):
     def __init__(self):
-        make_snapshot = partial(PathSnapshot, walker=_walker_recursive)
+        make_snapshot = partial(FileSnapshot, walker=_walker_recursive)
         PollingObserverBase.__init__(self, make_snapshot,
                                      polling_interval=settings.POLLING_INTERVAL)
