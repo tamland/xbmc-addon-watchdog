@@ -22,20 +22,9 @@
 :synopsis: Utility classes and functions.
 :author: yesudeep@google.com (Yesudeep Mangalapilly)
 
-Functions
----------
-
-.. autofunction:: has_attribute
-
-.. autofunction:: load_class
-
-.. autofunction:: load_module
-
-.. autofunction:: read_text_file
-
 Classes
 -------
-.. autoclass:: DaemonThread
+.. autoclass:: BaseThread
    :members:
    :show-inheritance:
    :inherited-members:
@@ -83,12 +72,8 @@ def has_attribute(ob, attribute):
     return getattr(ob, attribute, None) is not None
 
 
-class DaemonThread(threading.Thread):
-
-    """
-    Daemon thread convenience class, sets a few properties and makes
-    writing daemon threads a little easier.
-    """
+class BaseThread(threading.Thread):
+    """ Convenience class for creating stoppable threads. """
 
     def __init__(self):
         threading.Thread.__init__(self)
@@ -106,22 +91,34 @@ class DaemonThread(threading.Thread):
         return self._stopped_event
 
     def should_keep_running(self):
-        """Determines whether the daemon thread should continue running."""
+        """Determines whether the thread should continue running."""
         return not self._stopped_event.is_set()
 
     def on_thread_stop(self):
         """Override this method instead of :meth:`stop()`.
         :meth:`stop()` calls this method.
 
-        Note that this method is called immediately after the daemon thread
-        is signaled to halt.
+        This method is called immediately after the thread is signaled to stop.
         """
         pass
 
     def stop(self):
-        """Signals the daemon thread to stop."""
+        """Signals the thread to stop."""
         self._stopped_event.set()
         self.on_thread_stop()
+
+    def on_thread_start(self):
+        """Override this method instead of :meth:`start()`. :meth:`start()`
+        calls this method.
+
+        This method is called right before this thread is started and this
+        object’s run() method is invoked.
+        """
+        pass
+
+    def start(self):
+        self.on_thread_start()
+        threading.Thread.start(self)
 
 
 def load_module(module_name):
@@ -168,15 +165,3 @@ def load_class(dotted_path):
     else:
         raise ValueError(
             'Dotted module path %s must contain a module name and a classname' % dotted_path)
-
-
-def read_text_file(file_path, mode='rb'):
-    """
-    Returns the contents of a file after opening it in read-only mode.
-
-    :param file_path:
-        Path to the file to be read from.
-    :param mode:
-        Mode string.
-    """
-    return open(file_path, mode).read()
