@@ -101,17 +101,16 @@ def _is_remote_filesystem(path):
 
 
 def get_media_sources(media_type):
-    response = rpc("Files.GetSources", media=media_type)
+    response = rpc('Files.GetSources', media=media_type)
+    paths = [s['file'] for s in response.get('result', {}).get('sources', [])]
+
     ret = []
-    if response.has_key('result'):
-        if response['result'].has_key('sources'):
-            paths = [e['file'] for e in response['result']['sources']]
-            for path in paths:
-                #split and decode multipaths
-                if path.startswith("multipath://"):
-                    for e in path.split("multipath://")[1].split('/'):
-                        if e != "":
-                            ret.append(unquote(e).encode('utf-8'))
-                elif not path.startswith("upnp://"):
-                    ret.append(path.encode('utf-8'))
+    for path in paths:
+        #split and decode multipaths
+        if path.startswith("multipath://"):
+            for e in path.split("multipath://")[1].split('/'):
+                if e != "":
+                    ret.append(unquote(e).encode('utf-8'))
+        elif not path.startswith("upnp://"):
+            ret.append(path.encode('utf-8'))
     return ret
