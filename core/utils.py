@@ -23,6 +23,7 @@ import xbmcgui
 import subprocess
 import simplejson as json
 from urllib import unquote
+from Queue import Queue
 
 
 def log(msg):
@@ -114,3 +115,20 @@ def get_media_sources(media_type):
         elif not path.startswith("upnp://"):
             ret.append(path.encode('utf-8'))
     return ret
+
+
+class OrderedSetQueue(Queue):
+    """Queue with no repetition."""
+
+    def _init(self, maxsize):
+        self.queue = []
+
+    def _qsize(self, len=len):
+        return len(self.queue)
+
+    def _put(self, item):
+        if item not in self.queue:
+            self.queue.append(item)
+
+    def _get(self):
+        return self.queue.pop()

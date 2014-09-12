@@ -18,7 +18,6 @@
 import os
 import traceback
 import threading
-import pykka
 import xbmc
 import xbmcgui
 import utils
@@ -32,70 +31,99 @@ SUPPORTED_MEDIA = '|' + xbmc.getSupportedMedia('video') + \
                   '|' + xbmc.getSupportedMedia('music') + '|'
 
 
-class XBMCActor(pykka.ThreadingActor):
-    """ Messaging interface to xbmc's executebuiltin calls """
-
-    @staticmethod
-    def _xbmc_is_busy():
-        xbmc.sleep(100) # visibility cant be immediately trusted. Give xbmc time to render
-        return ((xbmc.Player().isPlaying() and settings.PAUSE_ON_PLAYBACK)
-            or xbmc.getCondVisibility('Library.IsScanning')
-            or xbmc.getCondVisibility('Window.IsActive(10101)'))
-
-    def scan(self, library, path):
-        """ Tell xbmc to scan. Returns immediately when scanning has started. """
-        while self._xbmc_is_busy():
-            pass
-        log("scanning %s (%s)" % (path, library))
-        if library == 'video' and settings.FORCE_GLOBAL_SCAN:
-            xbmc.executebuiltin("UpdateLibrary(video)")
-        else:
-            xbmc.executebuiltin("UpdateLibrary(%s,%s)" % (library, escape_param(path)))
-
-    def clean(self, library, path=None):
-        """ Tell xbmc to clean. Returns immediately when scanning has started. """
-        while self._xbmc_is_busy():
-            pass
-        log("cleaning %s library" % library)
-        xbmc.executebuiltin("CleanLibrary(%s)" % library)
-
-
-class EventHandler(threading.Thread, FileSystemEventHandler):
-    """
-    Handles raw incoming events for single root path and library
-    and forward scan/clean commands to the xbmc actor singleton.
-
-    Commands are skipped base on settings and the path the event comes from.
-    Additionally, 'batches' of events that occur before cleaning/scanning has
-    started are accumulated into one call.
+class XBMCIF(threading.Thread):
+    """Wrapper around the builtins to make sure no two commands a executed at
+    the same time (xbmc will cancel previous if not finished)
     """
 
-    def __init__(self, library, path, xbmc_actor):
+    def __init__(self):
         threading.Thread.__init__(self)
+        self._stop_event = threading.Event()
+        self._cmd_queue = utils.OrderedSetQueue()
+
+    def stop(self):
+        self._stop_event.set()
+        self._cmd_queue.put(None)  # unblock get in run
+
+    def queue_scan(self, library, path=None):
+        if path:
+            cmd = "UpdateLibrary(%s,%s)" % (library, escape_param(path))
+        else:
+            cmd = "UpdateLibrary(%s)" % library
+        self._cmd_queue.put(cmd)
+
+    def queue_clean(self, library):
+        self._cmd_queue.put("CleanLibrary(%s)" % library)
+
+    def run(self):
+        player = xbmc.Player()
+        while True:
+            cmd = self._cmd_queue.get()
+            if self._stop_event.is_set():
+                return
+            while player.isPlaying() and not self._stop_event.is_set():
+                xbmc.sleep(1000)
+            if self._stop_event.is_set():
+                return
+
+            # TODO: duplicate commands can be cleared from the queue here
+            log("[xbmcif] executing builtin: '%s'" % cmd)
+            xbmc.executebuiltin(cmd)
+
+            # wait for scan to start. we need a timeout or else we a screwed
+            # if we missed it.
+            # TODO: replace this crap with Monitor callbacks in Helix
+            log("[xbmcif] waiting for scan/clean start..")
+            timeout = 3000
+            while not xbmc.getCondVisibility('Library.IsScanning') \
+                    and not self._stop_event.is_set():
+                xbmc.sleep(100)
+                timeout -= 100
+                if timeout <= 0:
+                    log("[xbmcif] wait for scan/clean timed out.")
+                    break
+            log("[xbmcif] scan/clean started.")
+            log("[xbmcif] waiting for scan/clean end..")
+
+            # wait for scan to end
+            while xbmc.getCondVisibility('Library.IsScanning') \
+                    and not self._stop_event.is_set():
+                xbmc.sleep(100)
+            log("[xbmcif] scan/clean ended.")
+
+
+class EventHandler(FileSystemEventHandler):
+    """
+    Handles raw incoming events for single root path and library,
+    and queues scan/clean commands to the xbmcif singleton.
+    """
+
+    def __init__(self, library, path, xbmcif):
         FileSystemEventHandler.__init__(self)
         self.library = library
         self.path = path
-        self.xbmc = xbmc_actor
-        self.stop_event = threading.Event()
-        self.new_event = threading.Event()
-        self.clean_event = threading.Event()
-        self.scan_event = threading.Event()
+        self.xbmcif = xbmcif
 
     def on_created(self, event):
         if not self._can_skip(event, event.src_path):
-            self.scan_event.set()
-            self.new_event.set()
+            # TODO: remove this hack when fixed in xbmc
+            if settings.FORCE_GLOBAL_SCAN and self.library == 'video':
+                self.xbmcif.queue_scan(self.library)
+            else:
+                self.xbmcif.queue_scan(self.library, self.path)
 
     def on_deleted(self, event):
         if settings.CLEAN and not self._can_skip(event, event.src_path):
-            self.clean_event.set()
-            self.new_event.set()
+            self.xbmcif.queue_clean(self.library)
 
     def on_moved(self, event):
         self.on_deleted(event)
         if not self._can_skip(event, event.dest_path):
-            self.scan_event.set()
-            self.new_event.set()
+            # TODO: remove this hack when fixed in xbmc
+            if settings.FORCE_GLOBAL_SCAN and self.library == 'video':
+                self.xbmcif.queue_scan(self.library)
+            else:
+                self.xbmcif.queue_scan(self.library, self.path)
 
     def on_any_event(self, event):
         log("<%s> <%s>" % (event.event_type, event.src_path))
@@ -123,29 +151,6 @@ class EventHandler(threading.Thread, FileSystemEventHandler):
                 return True
         return False
 
-    def stop(self):
-        self.stop_event.set()
-        self.new_event.set()
-
-    def run(self):
-        while True:
-            self.new_event.wait()
-            if self.stop_event.wait(settings.SCAN_DELAY):
-                return
-
-            if self.clean_event.is_set():
-                self.xbmc.clean(self.library, self.path)
-                self.clean_event.clear()
-
-            if self.stop_event.is_set():
-                return
-
-            if self.scan_event.is_set():
-                self.xbmc.scan(self.library, self.path)
-                # Scan started. All events occurring from here on out may not
-                # be picked up by scanner and will require a new scan.
-                self.scan_event.clear()
-
 
 def main():
     progress = xbmcgui.DialogProgressBG()
@@ -171,10 +176,9 @@ def main():
     if not sources:
         notify("Nothing to watch", "No media source found")
 
-    xbmc_actor = XBMCActor.start().proxy()
+    xbmcif = XBMCIF()
     observer = MultiEmitterObserver()
-    observer.start()
-    event_handlers = []
+    observer.start()  # start so emitters are started on schedule
 
     for i, (libtype, path) in enumerate(sources):
         progress.update((i+1)/len(sources)*100, message="Setting up %s" % path)
@@ -184,9 +188,7 @@ def main():
             log("not watching <%s>. does not exist" % path)
             notify("Could not find path", path)
             continue
-        eh = EventHandler(libtype, path, xbmc_actor)
-        eh.start()
-        event_handlers.append(eh)
+        eh = EventHandler(libtype, path, xbmcif)
         try:
             observer.schedule(eh, path=fs_path, emitter_cls=emitter_cls)
             log("watching <%s> using %s" % (path, emitter_cls))
@@ -195,6 +197,7 @@ def main():
             log("failed to watch <%s>" % path)
             notify("Failed to watch %s" % path, "See log for details")
 
+    xbmcif.start()
     progress.close()
     log("initialization done")
 
@@ -203,14 +206,9 @@ def main():
 
     log("stopping..")
     observer.stop()
-    for i, th in enumerate(event_handlers):
-        try:
-            log("stopping event handler %d of %d" % (i+1, len(event_handlers)))
-            th.stop()
-        except Exception:
-            traceback.print_exc()
-    xbmc_actor.stop()
+    xbmcif.stop()
     observer.join()
+    xbmcif.join()
 
 if __name__ == "__main__":
     main()
