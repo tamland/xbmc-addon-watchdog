@@ -27,9 +27,6 @@ from itertools import repeat
 from watchdog.events import FileSystemEventHandler
 from emitters import MultiEmitterObserver
 
-SUPPORTED_MEDIA = '|' + xbmc.getSupportedMedia('video') + \
-                  '|' + xbmc.getSupportedMedia('music') + '|'
-
 
 class XBMCIF(threading.Thread):
     """Wrapper around the builtins to make sure no two commands a executed at
@@ -103,6 +100,7 @@ class EventHandler(FileSystemEventHandler):
         self.library = library
         self.path = path
         self.xbmcif = xbmcif
+        self.supported_media = '|' + xbmc.getSupportedMedia(library) + '|'
 
     def on_created(self, event):
         if not self._can_skip(event, event.src_path):
@@ -146,7 +144,7 @@ class EventHandler(FileSystemEventHandler):
         if not event.is_directory:
             _, ext = os.path.splitext(path)
             ext = ext.lower()
-            if SUPPORTED_MEDIA.find('|%s|' % ext) == -1:
+            if self.supported_media.find('|%s|' % ext) == -1:
                 log("skipping <%s> <%s>" % (event.event_type, path))
                 return True
         return False
