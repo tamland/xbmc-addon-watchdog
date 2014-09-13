@@ -31,17 +31,6 @@ def _walker_recursive(top):
             yield dirs, files
 
 
-def _walker_depth_1(top):
-    names = [ os.path.join(top, name) for name in os.listdir(top) if not hidden(name)]
-    dirs = [ name for name in names if os.path.isdir(name) ]
-    files = [ name for name in names if not os.path.isdir(name) ]
-    yield dirs, files
-
-
-def _get_mtime(path):
-    return os.stat(path).st_mtime
-
-
 class LocalPoller(PollerBase):
     interval = 4
     make_snapshot = partial(FileSnapshot, walker=_walker_recursive)
