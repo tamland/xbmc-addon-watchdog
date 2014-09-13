@@ -17,7 +17,7 @@
 
 import os
 from functools import partial
-from polling import *
+from polling import PollerBase, FileSnapshot, hidden
 
 
 def _walker_recursive(top):

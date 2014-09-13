@@ -19,7 +19,7 @@ import os
 import xbmcvfs
 import settings
 from functools import partial
-from polling import *
+from polling import PollerBase, FileSnapshot, SnapshotRootOnly, SnapshotWithStat, hidden
 
 
 def _join_path(base, lst):
