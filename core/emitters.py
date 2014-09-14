@@ -23,8 +23,6 @@ from watchdog.observers.api import ObservedWatch
 from polling_local import LocalPoller
 from polling_xbmc import VFSPoller, VFSPollerNonRecursive
 
-__all__ = ['LocalPoller', 'VFSPoller', 'VFSPollerNonRecursive',
-           'NativeEmitter', 'MultiEmitterObserver']
 
 try:
     from watchdog.observers.inotify import InotifyEmitter as NativeEmitter
