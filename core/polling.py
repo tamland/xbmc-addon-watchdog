@@ -52,20 +52,22 @@ class FileSnapshot(object):
 
 
 class PollerBase(EventEmitter):
-    make_snapshot = None
     polling_interval = -1
 
     def __init__(self, event_queue, watch, timeout=1):
         EventEmitter.__init__(self, event_queue, watch, timeout)
         self._snapshot = None
 
+    def _take_snapshot(self):
+        pass
+
     def queue_events(self, timeout):
         if self._snapshot is None:
-            self._snapshot = self.make_snapshot(self.watch.path)
+            self._snapshot = self._take_snapshot()
         if self.stopped_event.wait(self.polling_interval):
             return
         if not _paused():
-            new_snapshot = self.make_snapshot(self.watch.path)
+            new_snapshot = self._take_snapshot()
             files_created, files_deleted, dirs_modified = self._snapshot.diff(new_snapshot)
             self._snapshot = new_snapshot
 

@@ -33,5 +33,7 @@ def _walk(path):
 
 class LocalPoller(PollerBase):
     polling_interval = 1
-    make_snapshot = partial(FileSnapshot, walker=_walk)
+
+    def _take_snapshot(self):
+        return FileSnapshot(self.watch.path, _walk)
 
