@@ -18,10 +18,10 @@
 from watchdog.observers.api import BaseObserver
 from watchdog.observers.api import ObservedWatch
 from polling_local import LocalPoller
-from polling_xbmc import XBMCVFSPoller, XBMCVFSPollerDepth1, XBMCVFSPollerDepth2
+from polling_xbmc import XBMCVFSPoller, XBMCVFSPollerNonRecursive
 
-__all__ = ['LocalPoller', 'XBMCVFSPoller', 'XBMCVFSPollerDepth1',
-           'XBMCVFSPollerDepth2', 'NativeEmitter', 'MultiEmitterObserver']
+__all__ = ['LocalPoller', 'XBMCVFSPoller', 'XBMCVFSPollerNonRecursive',
+           'NativeEmitter', 'MultiEmitterObserver']
 
 try:
     from watchdog.observers.inotify import InotifyEmitter as NativeEmitter

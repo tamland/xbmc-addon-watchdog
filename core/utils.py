@@ -75,10 +75,9 @@ def select_emitter(path):
             return path_alt, emitters.NativeEmitter
 
     if xbmcvfs.exists(path):
-        options = [emitters.XBMCVFSPollerDepth1,
-                   emitters.XBMCVFSPollerDepth2,
-                   emitters.XBMCVFSPoller]
-        return path, options[settings.POLLING_METHOD]
+        if settings.RECURSIVE:
+            return path, emitters.XBMCVFSPoller
+        return path, emitters.XBMCVFSPollerNonRecusive
     raise IOError("No such directory: '%s'" % path)
 
 

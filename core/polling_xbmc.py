@@ -19,7 +19,7 @@ import os
 import xbmcvfs
 import settings
 from functools import partial
-from polling import PollerBase, FileSnapshot, SnapshotRootOnly, SnapshotWithStat, hidden
+from polling import PollerBase, FileSnapshot, MtimeSnapshot, hidden
 
 
 def _join_path(base, lst):
@@ -36,11 +36,6 @@ def _walker_recursive(top):
             yield dirs, files
 
 
-def _walker_depth_1(top):
-    dirs, files = xbmcvfs.listdir(top) #returns utf-8 encoded str
-    yield _join_path(top, dirs), _join_path(top, files)
-
-
 def _get_mtime(path):
     return xbmcvfs.Stat(path).st_mtime()
 
@@ -50,9 +45,7 @@ class XBMCVFSPoller(PollerBase):
     make_snapshot = partial(FileSnapshot, walker=_walker_recursive)
 
 
-class XBMCVFSPollerDepth1(XBMCVFSPoller):
-    make_snapshot = partial(SnapshotRootOnly, get_mtime=_get_mtime)
+class XBMCVFSPollerNonRecursive(PollerBase):
+    interval = settings.POLLING_INTERVAL
+    make_snapshot = partial(MtimeSnapshot, get_mtime=_get_mtime)
 
-
-class XBMCVFSPollerDepth2(XBMCVFSPoller):
-    make_snapshot = partial(SnapshotWithStat, walker=_walker_depth_1, get_mtime=_get_mtime)

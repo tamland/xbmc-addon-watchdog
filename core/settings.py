@@ -22,9 +22,8 @@ ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
 CLEAN = ADDON.getSetting('clean') == 'true'
 POLLING = int(ADDON.getSetting('method'))
-POLLING_METHOD = int(ADDON.getSetting('pollingmethod'))
 POLLING_INTERVAL = int("0"+ADDON.getSetting('pollinginterval')) or 4
-RECURSIVE = not (ADDON.getSetting('nonrecursive') == 'true') or not POLLING
+RECURSIVE = ADDON.getSetting('recursivepolling') == 'true'
 SCAN_DELAY = int("0"+ADDON.getSetting('delay')) or 1
 STARTUP_DELAY = int("0"+ADDON.getSetting('startupdelay'))
 PAUSE_ON_PLAYBACK = ADDON.getSetting('pauseonplayback') == 'true'
