@@ -21,9 +21,9 @@ import subprocess
 from watchdog.observers.api import BaseObserver
 from watchdog.observers.api import ObservedWatch
 from polling_local import LocalPoller
-from polling_xbmc import XBMCVFSPoller, XBMCVFSPollerNonRecursive
+from polling_xbmc import VFSPoller, VFSPollerNonRecursive
 
-__all__ = ['LocalPoller', 'XBMCVFSPoller', 'XBMCVFSPollerNonRecursive',
+__all__ = ['LocalPoller', 'VFSPoller', 'VFSPollerNonRecursive',
            'NativeEmitter', 'MultiEmitterObserver']
 
 try:
@@ -81,8 +81,8 @@ def select_emitter(path):
 
     if xbmcvfs.exists(path):
         if settings.RECURSIVE:
-            return path, XBMCVFSPoller
-        return path, XBMCVFSPollerNonRecursive
+            return path, VFSPoller
+        return path, VFSPollerNonRecursive
     raise IOError("No such directory: '%s'" % path)
 
 

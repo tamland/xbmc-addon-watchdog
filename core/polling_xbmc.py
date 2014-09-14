@@ -40,12 +40,12 @@ def _get_mtime(path):
     return xbmcvfs.Stat(path).st_mtime()
 
 
-class XBMCVFSPoller(PollerBase):
+class VFSPoller(PollerBase):
     interval = settings.POLLING_INTERVAL
     make_snapshot = partial(FileSnapshot, walker=_walker_recursive)
 
 
-class XBMCVFSPollerNonRecursive(PollerBase):
+class VFSPollerNonRecursive(PollerBase):
     interval = settings.POLLING_INTERVAL
     make_snapshot = partial(MtimeSnapshot, get_mtime=_get_mtime)
 
