@@ -18,7 +18,7 @@
 import xbmc
 from functools import partial
 from watchdog.observers.api import EventEmitter, BaseObserver
-from watchdog.events import DirDeletedEvent, DirCreatedEvent
+from watchdog.events import DirDeletedEvent, DirCreatedEvent, FileCreatedEvent, FileDeletedEvent
 from utils import log
 import settings
 
@@ -68,17 +68,16 @@ class PollerBase(EventEmitter):
             return
         if not _paused():
             new_snapshot = self.make_snapshot(self.watch.path)
-            created, deleted, modified = self._snapshot.diff(new_snapshot)
+            files_created, files_deleted, dirs_modified = self._snapshot.diff(new_snapshot)
             self._snapshot = new_snapshot
 
-            if deleted:
-                log("poller: delete event appeared in %s" % deleted)
-            if created:
-                log("poller: create event appeared in %s" % created)
-            if modified and not(deleted or created):
-                log("poller: modify event appeared in %s" % modified)
+            for path in files_created:
+                self.queue_event(FileCreatedEvent(path))
+            for path in files_deleted:
+                self.queue_event(FileDeletedEvent(path))
 
-            if modified or deleted:
+            # TODO: fix event handler and remove this
+            if dirs_modified:
                 self.queue_event(DirDeletedEvent(self.watch.path + '*'))
-            if modified or created:
+            if dirs_modified:
                 self.queue_event(DirCreatedEvent(self.watch.path + '*'))
