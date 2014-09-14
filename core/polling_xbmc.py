@@ -22,17 +22,17 @@ from functools import partial
 from polling import PollerBase, FileSnapshot, MtimeSnapshot, hidden
 
 
-def _join_path(base, lst):
-    return [ os.path.join(base, _) for _ in lst if not hidden(_) ]
+def _join_paths(base_path, paths):
+    return [os.path.join(base_path, p) for p in paths if not hidden(p)]
 
 
-def _walker_recursive(top):
-    dirs, files = xbmcvfs.listdir(top) #returns utf-8 encoded str
-    dirs = _join_path(top, dirs)
-    files = _join_path(top, files)
+def _walk(path):
+    dirs, files = xbmcvfs.listdir(path)
+    dirs = _join_paths(path, dirs)
+    files = _join_paths(path, files)
     yield dirs, files
     for d in dirs:
-        for dirs, files in _walker_recursive(d):
+        for dirs, files in _walk(d):
             yield dirs, files
 
 
@@ -42,7 +42,7 @@ def _get_mtime(path):
 
 class VFSPoller(PollerBase):
     interval = settings.POLLING_INTERVAL
-    make_snapshot = partial(FileSnapshot, walker=_walker_recursive)
+    make_snapshot = partial(FileSnapshot, walker=_walk)
 
 
 class VFSPollerNonRecursive(PollerBase):

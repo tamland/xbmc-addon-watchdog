@@ -20,18 +20,18 @@ from functools import partial
 from polling import PollerBase, FileSnapshot, hidden
 
 
-def _walker_recursive(top):
-    for root, dirs, files in os.walk(top):
+def _walk(path):
+    for root, dirs, files in os.walk(path):
         if dirs or files:
             for d in dirs:
                 if hidden(d):
                     dirs.remove(d)
-            dirs = (os.path.join(root, _)  for _ in dirs)
-            files = (os.path.join(root, _) for _ in files if not hidden(_))
+            dirs = (os.path.join(root, d) for d in dirs)
+            files = (os.path.join(root, f) for f in files if not hidden(f))
             yield dirs, files
 
 
 class LocalPoller(PollerBase):
     interval = 4
-    make_snapshot = partial(FileSnapshot, walker=_walker_recursive)
+    make_snapshot = partial(FileSnapshot, walker=_walk)
 
