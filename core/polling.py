@@ -53,7 +53,7 @@ class FileSnapshot(object):
 
 class PollerBase(EventEmitter):
     make_snapshot = None
-    interval = -1
+    polling_interval = -1
 
     def __init__(self, event_queue, watch, timeout=1):
         EventEmitter.__init__(self, event_queue, watch, timeout)
@@ -62,7 +62,7 @@ class PollerBase(EventEmitter):
     def queue_events(self, timeout):
         if self._snapshot is None:
             self._snapshot = self.make_snapshot(self.watch.path)
-        if self.stopped_event.wait(timeout):
+        if self.stopped_event.wait(self.polling_interval):
             return
         if not _paused():
             new_snapshot = self.make_snapshot(self.watch.path)

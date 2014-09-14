@@ -41,11 +41,11 @@ def _get_mtime(path):
 
 
 class VFSPoller(PollerBase):
-    interval = settings.POLLING_INTERVAL
+    polling_interval = settings.POLLING_INTERVAL
     make_snapshot = partial(FileSnapshot, walker=_walk)
 
 
 class VFSPollerNonRecursive(PollerBase):
-    interval = settings.POLLING_INTERVAL
+    polling_interval = settings.POLLING_INTERVAL
     make_snapshot = partial(MtimeSnapshot, get_mtime=_get_mtime)
 
