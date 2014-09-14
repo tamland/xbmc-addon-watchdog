@@ -16,10 +16,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import xbmc
-from functools import partial
-from watchdog.observers.api import EventEmitter, BaseObserver
+from watchdog.observers.api import EventEmitter
 from watchdog.events import DirDeletedEvent, DirCreatedEvent, FileCreatedEvent, FileDeletedEvent
-from utils import log
 import settings
 
 
