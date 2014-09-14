@@ -15,12 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import sys
 import xbmc
-import xbmcvfs
 import xbmcgui
-import subprocess
 import simplejson as json
 from urllib import unquote
 from Queue import Queue
@@ -48,56 +44,6 @@ def rpc(method, **params):
     params = json.dumps(params)
     query = '{"jsonrpc": "2.0", "method": "%s", "params": %s, "id": 1}' % (method, params)
     return json.loads(xbmc.executeJSONRPC(query))
-
-
-def select_emitter(path):
-    # path assumed to be utf-8 encoded string
-    import settings
-    import emitters
-    if os.path.exists(path):
-        if settings.POLLING:
-            return path, emitters.LocalPoller
-        elif _is_remote_filesystem(path):
-            log("select_observer: path <%s> identified as remote filesystem" % path)
-            return path, emitters.LocalPoller
-        return path, emitters.NativeEmitter
-
-    # try using fs encoding
-    fsenc = sys.getfilesystemencoding()
-    if fsenc:
-        try:
-            path_alt = path.decode('utf-8').encode(fsenc)
-        except UnicodeEncodeError:
-            path_alt = None
-        if path_alt and os.path.exists(path_alt):
-            if settings.POLLING:
-                return path_alt, emitters.LocalPoller
-            return path_alt, emitters.NativeEmitter
-
-    if xbmcvfs.exists(path):
-        if settings.RECURSIVE:
-            return path, emitters.XBMCVFSPoller
-        return path, emitters.XBMCVFSPollerNonRecusive
-    raise IOError("No such directory: '%s'" % path)
-
-
-def _is_remote_filesystem(path):
-    from watchdog.utils import platform
-    REMOTE_FSTYPES = '|cifs|smbfs|nfs|nfs4|'
-    if platform.is_linux():
-        try:
-            df = subprocess.Popen(['df', '--output=fstype', path],
-                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = df.communicate()
-            if df.returncode == 0:
-                fstype = stdout.rstrip('\n').split('\n')[1]
-                log("df. fstype of <%s> is %s" % (path, fstype))
-                return fstype and REMOTE_FSTYPES.find('|%s|' % fstype) != -1
-            else:
-                log("df returned %d, %s" % (df.returncode, stderr))
-        except Exception as e:
-            log("df failed. %s, %s" % (type(e), e))
-    return False
 
 
 def get_media_sources(media_type):

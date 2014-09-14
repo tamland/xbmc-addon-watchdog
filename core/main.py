@@ -22,6 +22,7 @@ import xbmc
 import xbmcgui
 import utils
 import settings
+import emitters
 from utils import escape_param, log, notify
 from itertools import repeat
 from watchdog.events import FileSystemEventHandler
@@ -181,7 +182,7 @@ def main():
     for i, (libtype, path) in enumerate(sources):
         progress.update((i+1)/len(sources)*100, message="Setting up %s" % path)
         try:
-            fs_path, emitter_cls = utils.select_emitter(path)
+            fs_path, emitter_cls = emitters.select_emitter(path)
         except IOError:
             log("not watching <%s>. does not exist" % path)
             notify("Could not find path", path)
