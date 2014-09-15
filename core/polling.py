@@ -59,25 +59,35 @@ class PollerBase(EventEmitter):
         self._snapshot = None
 
     def _take_snapshot(self):
+        """Take and return a snapshot of this emitters root path."""
         pass
 
+    def is_offline(self):
+        """Whether the file system this emitter is watching is offline."""
+        return False
+
     def queue_events(self, timeout):
-        if self._snapshot is None:
-            self._snapshot = self._take_snapshot()
         if self.stopped_event.wait(self.polling_interval):
             return
-        if not _paused():
-            new_snapshot = self._take_snapshot()
-            files_created, files_deleted, dirs_modified = self._snapshot.diff(new_snapshot)
-            self._snapshot = new_snapshot
+        if _paused():
+            return
+        if self.is_offline():
+            return
+        if self._snapshot is None:
+            self._snapshot = self._take_snapshot()
+            return
 
-            for path in files_created:
-                self.queue_event(FileCreatedEvent(path))
-            for path in files_deleted:
-                self.queue_event(FileDeletedEvent(path))
+        new_snapshot = self._take_snapshot()
+        files_created, files_deleted, dirs_modified = self._snapshot.diff(new_snapshot)
+        self._snapshot = new_snapshot
 
-            # TODO: fix event handler and remove this
-            if dirs_modified:
-                self.queue_event(DirDeletedEvent(self.watch.path + '*'))
-            if dirs_modified:
-                self.queue_event(DirCreatedEvent(self.watch.path + '*'))
+        for path in files_created:
+            self.queue_event(FileCreatedEvent(path))
+        for path in files_deleted:
+            self.queue_event(FileDeletedEvent(path))
+
+        # TODO: fix event handler and remove this
+        if dirs_modified:
+            self.queue_event(DirDeletedEvent(self.watch.path + '*'))
+        if dirs_modified:
+            self.queue_event(DirCreatedEvent(self.watch.path + '*'))

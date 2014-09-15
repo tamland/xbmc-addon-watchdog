@@ -46,9 +46,13 @@ class VFSPoller(PollerBase):
     def _take_snapshot(self):
         return FileSnapshot(self.watch.path, _walk)
 
+    def is_offline(self):
+        # Since path is always a media source, it's unlikely the user would
+        # delete it. Assume it's offline if it doesn't exist.
+        return not xbmcvfs.exists(self.watch.path)
 
-class VFSPollerNonRecursive(PollerBase):
-    polling_interval = settings.POLLING_INTERVAL
+
+class VFSPollerNonRecursive(VFSPoller):
 
     def _take_snapshot(self):
         return MtimeSnapshot(self.watch.path, _get_mtime)
