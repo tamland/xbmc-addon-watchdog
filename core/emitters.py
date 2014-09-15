@@ -77,28 +77,27 @@ def select_emitter(path):
                 return path_alt, LocalPoller
             return path_alt, NativeEmitter
 
-    if xbmcvfs.exists(path):
-        if settings.RECURSIVE:
-            return path, VFSPoller
-        return path, VFSPollerNonRecursive
     raise IOError("No such directory: '%s'" % path)
 
 
 def _is_remote_filesystem(path):
     from utils import log
     from watchdog.utils import platform
-    REMOTE_FSTYPES = '|cifs|smbfs|nfs|nfs4|'
-    if platform.is_linux():
-        try:
-            df = subprocess.Popen(['df', '--output=fstype', path],
-                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = df.communicate()
-            if df.returncode == 0:
-                fstype = stdout.rstrip('\n').split('\n')[1]
-                log("df. fstype of <%s> is %s" % (path, fstype))
-                return fstype and REMOTE_FSTYPES.find('|%s|' % fstype) != -1
-            else:
-                log("df returned %d, %s" % (df.returncode, stderr))
-        except Exception as e:
-            log("df failed. %s, %s" % (type(e), e))
-    return False
+    if not platform.is_linux():
+        return False
+
+    remote_fs_types = ['cifs', 'smbfs', 'nfs', 'nfs4']
+    escaped_path = path.rstrip('/').replace(' ', '\\040')
+    try:
+        with open('/proc/mounts', 'r') as f:
+            for line in f:
+                _, mount_point, fstype = line.split()[:3]
+                if mount_point == escaped_path:
+                    log("[fstype] type is \"%s\" '%s' " % (fstype, path))
+                    return fstype in remote_fs_types
+        log("[fstype] path not in /proc/mounts '%s' " % escaped_path)
+        return False
+
+    except (IOError, ValueError) as e:
+        log("[fstype] failed to read /proc/mounts. %s, %s" % (type(e), e))
+        return False
