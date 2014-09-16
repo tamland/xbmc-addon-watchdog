@@ -26,6 +26,7 @@ import emitters
 from utils import escape_param, log, notify
 from itertools import repeat
 from watchdog.events import FileSystemEventHandler
+from watchdog.utils.compat import Event
 from emitters import MultiEmitterObserver
 
 
@@ -36,7 +37,7 @@ class XBMCIF(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
-        self._stop_event = threading.Event()
+        self._stop_event = Event()
         self._cmd_queue = utils.OrderedSetQueue()
 
     def stop(self):
