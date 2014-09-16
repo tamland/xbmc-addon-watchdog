@@ -65,27 +65,24 @@ def select_emitter(path):
             return path, VFSPollerNonRecursive
         raise IOError("No such directory: '%s'" % path)
 
-    if os.path.exists(path):
-        if settings.POLLING:
-            return path, LocalPoller
-        elif _is_remote_filesystem(path):
-            log("select_observer: path <%s> identified as remote filesystem" % path)
-            return path, LocalPoller
-        return path, NativeEmitter
-
-    # try using fs encoding
-    fsenc = sys.getfilesystemencoding()
-    if fsenc:
+    if not os.path.exists(path):
+        # try using fs encoding
+        path2 = None
         try:
-            path_alt = path.decode('utf-8').encode(fsenc)
-        except UnicodeEncodeError:
-            path_alt = None
-        if path_alt and os.path.exists(path_alt):
-            if settings.POLLING:
-                return path_alt, LocalPoller
-            return path_alt, NativeEmitter
+            path2 = path.decode('utf-8').encode(sys.getfilesystemencoding())
+        except (TypeError, LookupError, UnicodeEncodeError):
+            pass
+        if path2 and os.path.exists(path2):
+            path = path2
+        else:
+            raise IOError("No such directory: '%s'" % path)
 
-    raise IOError("No such directory: '%s'" % path)
+    if settings.POLLING:
+        return path, LocalPoller
+    if _is_remote_filesystem(path):
+        log("select_observer: path <%s> identified as remote filesystem" % path)
+        return path, LocalPoller
+    return path, NativeEmitter
 
 
 def _is_remote_filesystem(path):
