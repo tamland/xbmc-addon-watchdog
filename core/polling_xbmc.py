@@ -18,7 +18,6 @@
 import os
 import xbmcvfs
 import settings
-from functools import partial
 from polling import PollerBase, FileSnapshot, MtimeSnapshot, hidden
 
 

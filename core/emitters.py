@@ -18,7 +18,6 @@
 import re
 import os
 import sys
-import subprocess
 from watchdog.observers.api import BaseObserver
 from watchdog.observers.api import ObservedWatch
 from polling_local import LocalPoller
