@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import os
 import sys
 import subprocess
@@ -56,6 +57,13 @@ def select_emitter(path):
     import xbmcvfs
     import settings
     from utils import log
+
+    if re.match(r'^[A-z]+://', path):
+        if xbmcvfs.exists(path):
+            if settings.RECURSIVE:
+                return path, VFSPoller
+            return path, VFSPollerNonRecursive
+        raise IOError("No such directory: '%s'" % path)
 
     if os.path.exists(path):
         if settings.POLLING:
