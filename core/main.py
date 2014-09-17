@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 import traceback
 import threading
 import xbmc
@@ -160,9 +161,12 @@ def main():
         log("waiting for user delay of %d seconds" % settings.STARTUP_DELAY)
         msg = "Delaying startup by %d seconds."
         progress.update(0, message=msg % settings.STARTUP_DELAY)
-        xbmc.sleep(settings.STARTUP_DELAY * 1000)
-        if xbmc.abortRequested:
-            return
+        start = time.time()
+        while time.time() - start < settings.STARTUP_DELAY:
+            xbmc.sleep(100)
+            if xbmc.abortRequested:
+                progress.close()
+                return
 
     sources = []
     video_sources = settings.VIDEO_SOURCES
