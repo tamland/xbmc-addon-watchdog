@@ -60,8 +60,8 @@ class XBMCIF(threading.Thread):
             cmd = self._cmd_queue.get()
             if self._stop_event.is_set():
                 return
-            while player.isPlaying() and not self._stop_event.is_set():
-                xbmc.sleep(1000)
+            while player.isPlaying():
+                self._stop_event.wait(1)
             if self._stop_event.is_set():
                 return
 
