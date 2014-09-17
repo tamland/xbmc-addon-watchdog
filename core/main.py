@@ -192,6 +192,10 @@ def main():
             log("not watching <%s>. does not exist" % path)
             notify("Could not find path", path)
             continue
+        finally:
+            if xbmc.abortRequested:
+                break
+
         eh = EventHandler(libtype, path, xbmcif)
         try:
             observer.schedule(eh, path=fs_path, emitter_cls=emitter_cls)
@@ -200,6 +204,9 @@ def main():
             traceback.print_exc()
             log("failed to watch <%s>" % path)
             notify("Failed to watch %s" % path, "See log for details")
+        finally:
+            if xbmc.abortRequested:
+                break
 
     xbmcif.start()
     progress.close()
