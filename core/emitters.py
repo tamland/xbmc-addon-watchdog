@@ -60,22 +60,20 @@ def select_emitter(path):
     import settings
     from utils import log
 
-    if re.match(r'^[A-z]+://', path):
-        if xbmcvfs.exists(path):
-            if settings.RECURSIVE:
-                return path, VFSPoller
-            return path, VFSPollerNonRecursive
-        raise IOError("No such directory: '%s'" % path)
+    if re.match(r'^[A-z]+://', path) and xbmcvfs.exists(path):
+        if settings.RECURSIVE:
+            return path, VFSPoller
+        return path, VFSPollerNonRecursive
 
-    if not os.path.exists(encode_path(path)):
-        raise IOError("No such directory: '%s'" % path)
+    if os.path.exists(encode_path(path)):
+        if settings.POLLING:
+            return path, LocalPoller
+        if _is_remote_filesystem(path):
+            log("select_observer: path <%s> identified as remote filesystem" % path)
+            return path, LocalPoller
+        return path, NativeEmitter
 
-    if settings.POLLING:
-        return path, LocalPoller
-    if _is_remote_filesystem(path):
-        log("select_observer: path <%s> identified as remote filesystem" % path)
-        return path, LocalPoller
-    return path, NativeEmitter
+    raise IOError("No such directory: '%s'" % path)
 
 
 def _is_remote_filesystem(path):
