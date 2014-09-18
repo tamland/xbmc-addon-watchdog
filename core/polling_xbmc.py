@@ -17,22 +17,15 @@
 
 from __future__ import unicode_literals
 
-import os
 import xbmcvfs
 import settings
 from polling import PollerBase, FileSnapshot, MtimeSnapshot, hidden
 
 
-def _join_paths(base_path, paths):
-    return [os.path.join(base_path, p) for p in paths if not hidden(p)]
-
-
 def _walk(path):
     dirs, files = xbmcvfs.listdir(path)
-    dirs = [d.decode('utf-8') for d in dirs]
-    files = [f.decode('utf-8') for f in files]
-    dirs = _join_paths(path, dirs)
-    files = _join_paths(path, files)
+    dirs = [path + '/' + _.decode('utf-8') for _ in dirs if not hidden(_)]
+    files = [path + '/' + _.decode('utf-8') for _ in files if not hidden(_)]
     yield dirs, files
     for d in dirs:
         for dirs, files in _walk(d):
