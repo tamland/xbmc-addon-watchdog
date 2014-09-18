@@ -63,20 +63,23 @@ def rpc(method, **params):
     return json.loads(xbmc.executeJSONRPC(query), encoding='utf-8')
 
 
+def _split_multipaths(paths):
+    ret = []
+    for path in paths:
+        if path.startswith("multipath://"):
+            subpaths = path.split("multipath://")[1].split('/')
+            subpaths = [unquote(path) for path in subpaths if path != ""]
+            ret.extend(subpaths)
+        else:
+            ret.append(path)
+    return ret
+
+
 def get_media_sources(media_type):
     response = rpc('Files.GetSources', media=media_type)
     paths = [s['file'] for s in response.get('result', {}).get('sources', [])]
-
-    ret = []
-    for path in paths:
-        #split and decode multipaths
-        if path.startswith("multipath://"):
-            for e in path.split("multipath://")[1].split('/'):
-                if e != "":
-                    ret.append(unquote(e))
-        elif not path.startswith("upnp://"):
-            ret.append(path)
-    return ret
+    paths = _split_multipaths(paths)
+    return [path for path in paths if not path.startswith('upnp://')]
 
 
 class OrderedSetQueue(Queue):
