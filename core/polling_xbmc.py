@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import os
 import xbmcvfs
 import settings
@@ -27,6 +29,8 @@ def _join_paths(base_path, paths):
 
 def _walk(path):
     dirs, files = xbmcvfs.listdir(path)
+    dirs = [d.decode('utf-8') for d in dirs]
+    files = [f.decode('utf-8') for f in files]
     dirs = _join_paths(path, dirs)
     files = _join_paths(path, files)
     yield dirs, files

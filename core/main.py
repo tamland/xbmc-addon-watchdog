@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import os
 import time
 import traceback
@@ -68,7 +70,7 @@ class XBMCIF(threading.Thread):
 
             # TODO: duplicate commands can be cleared from the queue here
             log("[xbmcif] executing builtin: '%s'" % cmd)
-            xbmc.executebuiltin(cmd)
+            xbmc.executebuiltin(cmd.encode('utf-8'))
 
             # wait for scan to start. we need a timeout or else we a screwed
             # if we missed it.
@@ -103,7 +105,7 @@ class EventHandler(FileSystemEventHandler):
         self.library = library
         self.path = path
         self.xbmcif = xbmcif
-        self.supported_media = '|' + xbmc.getSupportedMedia(library) + '|'
+        self.supported_media = '|' + xbmc.getSupportedMedia(library).decode('utf-8') + '|'
 
     def on_created(self, event):
         if not self._can_skip(event, event.src_path):

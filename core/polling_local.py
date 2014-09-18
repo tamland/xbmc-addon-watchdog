@@ -15,18 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import os
 from polling import PollerBase, FileSnapshot, hidden
+from utils import encode_path, decode_path
 
 
 def _walk(path):
+    path = encode_path(path)
     for root, dirs, files in os.walk(path):
         if dirs or files:
             for d in dirs:
                 if hidden(d):
                     dirs.remove(d)
-            dirs = (os.path.join(root, d) for d in dirs)
-            files = (os.path.join(root, f) for f in files if not hidden(f))
+            dirs = (decode_path(os.path.join(root, d)) for d in dirs)
+            files = (decode_path(os.path.join(root, f)) for f in files if not hidden(f))
             yield dirs, files
 
 
