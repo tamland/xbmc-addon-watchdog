@@ -18,7 +18,8 @@
 from __future__ import unicode_literals
 
 import os
-from polling import PollerBase, FileSnapshot, hidden
+import settings
+from polling import PollerBase, FileSnapshot, MtimeSnapshot, hidden
 from utils import encode_path, decode_path
 
 
@@ -34,9 +35,15 @@ def _walk(path):
             yield dirs, files
 
 
+def _get_mtime(path):
+    return os.stat(encode_path(path)).st_mtime
+
+
 class LocalPoller(PollerBase):
     polling_interval = 1
+    recursive = settings.RECURSIVE
 
     def _take_snapshot(self):
-        return FileSnapshot(self.watch.path, _walk)
-
+        if self.recursive:
+            return FileSnapshot(self.watch.path, _walk)
+        return MtimeSnapshot(self.watch.path, _get_mtime)

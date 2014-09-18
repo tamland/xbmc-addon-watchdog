@@ -19,11 +19,10 @@ from __future__ import unicode_literals
 
 import re
 import os
-import sys
 from watchdog.observers.api import BaseObserver
 from watchdog.observers.api import ObservedWatch
 from polling_local import LocalPoller
-from polling_xbmc import VFSPoller, VFSPollerNonRecursive
+from polling_xbmc import VFSPoller
 from utils import encode_path
 
 
@@ -61,9 +60,7 @@ def select_emitter(path):
     from utils import log
 
     if re.match(r'^[A-z]+://', path) and xbmcvfs.exists(path):
-        if settings.RECURSIVE:
-            return path, VFSPoller
-        return path, VFSPollerNonRecursive
+        return path, VFSPoller
 
     if os.path.exists(encode_path(path)):
         if settings.POLLING:

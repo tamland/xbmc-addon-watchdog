@@ -55,6 +55,7 @@ class FileSnapshot(object):
 
 class PollerBase(EventEmitter):
     polling_interval = -1
+    recursive = True
 
     def __init__(self, event_queue, watch, timeout=1):
         EventEmitter.__init__(self, event_queue, watch, timeout)
