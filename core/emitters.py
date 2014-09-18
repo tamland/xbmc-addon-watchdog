@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 import os
 import sys
@@ -22,6 +24,7 @@ from watchdog.observers.api import BaseObserver
 from watchdog.observers.api import ObservedWatch
 from polling_local import LocalPoller
 from polling_xbmc import VFSPoller, VFSPollerNonRecursive
+from utils import encode_path
 
 
 try:
@@ -64,17 +67,8 @@ def select_emitter(path):
             return path, VFSPollerNonRecursive
         raise IOError("No such directory: '%s'" % path)
 
-    if not os.path.exists(path):
-        # try using fs encoding
-        path2 = None
-        try:
-            path2 = path.decode('utf-8').encode(sys.getfilesystemencoding())
-        except (TypeError, LookupError, UnicodeEncodeError):
-            pass
-        if path2 and os.path.exists(path2):
-            path = path2
-        else:
-            raise IOError("No such directory: '%s'" % path)
+    if not os.path.exists(encode_path(path)):
+        raise IOError("No such directory: '%s'" % path)
 
     if settings.POLLING:
         return path, LocalPoller
@@ -91,7 +85,7 @@ def _is_remote_filesystem(path):
         return False
 
     remote_fs_types = ['cifs', 'smbfs', 'nfs', 'nfs4']
-    escaped_path = path.rstrip('/').replace(' ', '\\040')
+    escaped_path = encode_path(path.rstrip('/').replace(' ', '\\040'))
     try:
         with open('/proc/mounts', 'r') as f:
             for line in f:

@@ -15,11 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import xbmcaddon
 import utils
 
 ADDON = xbmcaddon.Addon()
-ADDON_ID = ADDON.getAddonInfo('id')
+ADDON_ID = ADDON.getAddonInfo('id').decode('utf-8')
 CLEAN = ADDON.getSetting('clean') == 'true'
 POLLING = int(ADDON.getSetting('method'))
 POLLING_INTERVAL = int("0"+ADDON.getSetting('pollinginterval')) or 4
@@ -35,18 +37,18 @@ if ADDON.getSetting('watchvideo') == 'true':
     VIDEO_SOURCES = utils.get_media_sources('video')
 else:
     VIDEO_SOURCES = [_ for _ in set([
-        ADDON.getSetting('videosource1'),
-        ADDON.getSetting('videosource2'),
-        ADDON.getSetting('videosource3'),
-        ADDON.getSetting('videosource4'),
-        ADDON.getSetting('videosource5')]) if _ != ""]
+        ADDON.getSetting('videosource1').decode('utf-8'),
+        ADDON.getSetting('videosource2').decode('utf-8'),
+        ADDON.getSetting('videosource3').decode('utf-8'),
+        ADDON.getSetting('videosource4').decode('utf-8'),
+        ADDON.getSetting('videosource5').decode('utf-8')]) if _ != ""]
 
 if ADDON.getSetting('watchmusic') == 'true':
     MUSIC_SOURCES = utils.get_media_sources('music')
 else:
     MUSIC_SOURCES = [_ for _ in set([
-        ADDON.getSetting('musicsource1'),
-        ADDON.getSetting('musicsource2'),
-        ADDON.getSetting('musicsource3'),
-        ADDON.getSetting('musicsource4'),
-        ADDON.getSetting('musicsource5')]) if _ != ""]
+        ADDON.getSetting('musicsource1').decode('utf-8'),
+        ADDON.getSetting('musicsource2').decode('utf-8'),
+        ADDON.getSetting('musicsource3').decode('utf-8'),
+        ADDON.getSetting('musicsource4').decode('utf-8'),
+        ADDON.getSetting('musicsource5').decode('utf-8')]) if _ != ""]

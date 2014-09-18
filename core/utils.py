@@ -15,6 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
+import sys
 import xbmc
 import xbmcgui
 import simplejson as json
@@ -24,7 +27,21 @@ from Queue import Queue
 
 def log(msg):
     import settings
-    xbmc.log("%s: %s" % (settings.ADDON_ID, msg), xbmc.LOGDEBUG)
+    xbmc.log((settings.ADDON_ID + ": " + msg).encode('utf-8', 'replace'), xbmc.LOGDEBUG)
+
+
+def encode_path(path):
+    """os.path does not handle unicode properly, i.e. when locale is C, file
+    system encoding is assumed to be ascii. """
+    if sys.platform.startswith('win'):
+        return path
+    return path.encode('utf-8')
+
+
+def decode_path(path):
+    if sys.platform.startswith('win'):
+        return path
+    return path.decode('utf-8')
 
 
 def escape_param(s):
@@ -41,9 +58,9 @@ def notify(msg1, msg2):
 
 
 def rpc(method, **params):
-    params = json.dumps(params)
-    query = '{"jsonrpc": "2.0", "method": "%s", "params": %s, "id": 1}' % (method, params)
-    return json.loads(xbmc.executeJSONRPC(query))
+    params = json.dumps(params, encoding='utf-8')
+    query = b'{"jsonrpc": "2.0", "method": "%s", "params": %s, "id": 1}' % (method, params)
+    return json.loads(xbmc.executeJSONRPC(query), encoding='utf-8')
 
 
 def get_media_sources(media_type):
@@ -56,9 +73,9 @@ def get_media_sources(media_type):
         if path.startswith("multipath://"):
             for e in path.split("multipath://")[1].split('/'):
                 if e != "":
-                    ret.append(unquote(e).encode('utf-8'))
+                    ret.append(unquote(e))
         elif not path.startswith("upnp://"):
-            ret.append(path.encode('utf-8'))
+            ret.append(path)
     return ret
 
 
