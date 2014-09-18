@@ -28,7 +28,7 @@ def _paused():
 
 
 def hidden(path):
-    return path.startswith('.') or path.startswith('_UNPACK')
+    return path.startswith(b'.') or path.startswith(b'_UNPACK')
 
 
 class MtimeSnapshot(object):
