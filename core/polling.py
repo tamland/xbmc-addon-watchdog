@@ -53,7 +53,14 @@ class FileSnapshot(object):
         return created, deleted, []
 
 
+class _PollerType(type):
+    def __str__(self):
+        return "%s(recursive=%s, interval=%d)" % (
+            self.__name__, self.recursive, self.polling_interval)
+
+
 class PollerBase(EventEmitter):
+    __metaclass__ = _PollerType
     polling_interval = -1
     recursive = True
 
