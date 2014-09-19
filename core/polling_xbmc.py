@@ -25,11 +25,11 @@ from polling import Poller, PollerNonRecursive, file_list_from_walk, hidden
 
 def _walk(path):
     dirs, files = xbmcvfs.listdir(path)
-    dirs = [path + '/' + _.decode('utf-8') for _ in dirs if not hidden(_)]
-    files = [path + '/' + _.decode('utf-8') for _ in files if not hidden(_)]
+    dirs = [path + _.decode('utf-8') for _ in dirs if not hidden(_)]
+    files = [path + _.decode('utf-8') for _ in files if not hidden(_)]
     yield dirs, files
     for d in dirs:
-        for dirs, files in _walk(d):
+        for dirs, files in _walk(d + '/'):
             yield dirs, files
 
 
