@@ -40,5 +40,7 @@
     <string id="30047">Update entire library on changes</string>
     <string id="30048">Pause during playback</string>
     <string id="30049">Poll recursively</string>
+    <string id="30050">Clean on startup</string>
+    <string id="30051">Scan on startup</string>
 </strings>
 

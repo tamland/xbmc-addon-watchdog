@@ -184,6 +184,18 @@ def main():
         notify("Nothing to watch", "No media source found")
 
     xbmcif = XBMCIF()
+    if settings.CLEAN_ON_START:
+        if video_sources:
+            xbmcif.queue_clean('video')
+        if music_sources:
+            xbmcif.queue_clean('music')
+
+    if settings.SCAN_ON_START:
+        if video_sources:
+            xbmcif.queue_scan('video')
+        if music_sources:
+            xbmcif.queue_scan('video')
+
     observer = MultiEmitterObserver()
     observer.start()  # start so emitters are started on schedule
 

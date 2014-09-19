@@ -31,6 +31,8 @@ STARTUP_DELAY = int("0"+ADDON.getSetting('startupdelay'))
 PAUSE_ON_PLAYBACK = ADDON.getSetting('pauseonplayback') == 'true'
 FORCE_GLOBAL_SCAN = ADDON.getSetting('forceglobalscan') == 'true'
 SHOW_NOTIFICATIONS = ADDON.getSetting('notifications') == 'true'
+CLEAN_ON_START = ADDON.getSetting('cleanonstart') == 'true'
+SCAN_ON_START = ADDON.getSetting('scanonstart') == 'true'
 
 
 if ADDON.getSetting('watchvideo') == 'true':
