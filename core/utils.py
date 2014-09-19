@@ -112,7 +112,7 @@ class OrderedSetQueue(object):
     def get_nowait(self):
         self.not_empty.acquire()
         try:
-            return self.queue.pop()
+            return self.queue.pop(0)
         finally:
             self.not_empty.release()
 
