@@ -45,7 +45,7 @@ class XBMCIF(threading.Thread):
 
     def stop(self):
         self._stop_event.set()
-        self._cmd_queue.put(None)  # unblock get in run
+        self._cmd_queue.put("stop")  # unblock wait
 
     def queue_scan(self, library, path=None):
         if path:
@@ -60,15 +60,17 @@ class XBMCIF(threading.Thread):
     def run(self):
         player = xbmc.Player()
         while True:
-            cmd = self._cmd_queue.get()
-            if self._stop_event.is_set():
+            self._cmd_queue.wait()
+            if self._stop_event.wait(settings.SCAN_DELAY):
                 return
             while player.isPlaying():
                 self._stop_event.wait(1)
             if self._stop_event.is_set():
                 return
 
-            # TODO: duplicate commands can be cleared from the queue here
+            # Remove item right before it's executed so that any duplicates of
+            # this commands gets flushed from the queue.
+            cmd = self._cmd_queue.get_nowait()
             log("[xbmcif] executing builtin: '%s'" % cmd)
             xbmc.executebuiltin(cmd.encode('utf-8'))
 

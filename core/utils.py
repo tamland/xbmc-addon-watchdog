@@ -22,7 +22,7 @@ import xbmc
 import xbmcgui
 import simplejson as json
 from urllib import unquote
-from Queue import Queue
+from threading import Condition
 
 
 def log(msg):
@@ -82,18 +82,39 @@ def get_media_sources(media_type):
     return [path for path in paths if not path.startswith('upnp://')]
 
 
-class OrderedSetQueue(Queue):
-    """Queue with no repetition."""
+class OrderedSetQueue(object):
+    """Queue with no repetition. Since we only have one consumer thread, this
+    is simplified version."""
 
-    def _init(self, maxsize):
+    def __init__(self):
         self.queue = []
+        self.not_empty = Condition()
 
-    def _qsize(self, len=len):
+    def size(self):
         return len(self.queue)
 
-    def _put(self, item):
-        if item not in self.queue:
+    def put(self, item):
+        self.not_empty.acquire()
+        try:
+            if item in self.queue:
+                return
             self.queue.append(item)
+            self.not_empty.notify()
+        finally:
+            self.not_empty.release()
 
-    def _get(self):
-        return self.queue.pop()
+    def get_nowait(self):
+        self.not_empty.acquire()
+        try:
+            return self.queue.pop()
+        finally:
+            self.not_empty.release()
+
+    def wait(self):
+        """Wait for item to become available."""
+        self.not_empty.acquire()
+        try:
+            while len(self.queue) == 0:
+                self.not_empty.wait()
+        finally:
+            self.not_empty.release()
