@@ -86,9 +86,9 @@ def _is_remote_filesystem(path):
             for line in f:
                 _, mount_point, fstype = line.split()[:3]
                 if mount_point == escaped_path:
-                    log("[fstype] type is \"%s\" '%s' " % (fstype, path))
+                    log("[fstype] type is \"%s\" '%s' " % (fstype, path.decode('utf-8')))
                     return fstype in remote_fs_types
-        log("[fstype] path not in /proc/mounts '%s' " % escaped_path)
+        log("[fstype] path not in /proc/mounts '%s' " % escaped_path.decode('utf-8'))
         return False
 
     except (IOError, ValueError) as e:
