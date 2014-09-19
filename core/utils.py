@@ -17,6 +17,8 @@
 
 from __future__ import unicode_literals
 
+import os
+import re
 import sys
 import xbmc
 import xbmcgui
@@ -42,6 +44,10 @@ def decode_path(path):
     if sys.platform.startswith('win'):
         return path
     return path.decode('utf-8')
+
+
+def is_url(path):
+    return re.match(r'^[A-z]+://', path) is not None
 
 
 def escape_param(s):

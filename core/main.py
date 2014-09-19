@@ -133,19 +133,18 @@ class EventHandler(FileSystemEventHandler):
     def on_any_event(self, event):
         log("<%s> <%s>" % (event.event_type, event.src_path))
 
-    @staticmethod
-    def _is_hidden(path):
-        dirs = path.split(os.sep)
-        for d in dirs:
-            if d.startswith('.') or d.startswith('_UNPACK'):
+    def _is_hidden(self, path):
+        sep = '/' if utils.is_url(self.path) else os.sep
+        relpath = path[len(self.path):] if path.startswith(self.path) else path
+        for part in relpath.split(sep):
+            if part.startswith('.') or part.startswith('_UNPACK'):
                 return True
         return False
 
     def _can_skip(self, event, path):
         if not path:
             return False
-        relpath = path[len(self.path):] if path.startswith(self.path) else path
-        if self._is_hidden(relpath):
+        if self._is_hidden(path):
             log("skipping <%s> <%s>" % (event.event_type, path))
             return True
         if not event.is_directory:

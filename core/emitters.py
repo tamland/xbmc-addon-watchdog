@@ -17,13 +17,12 @@
 
 from __future__ import unicode_literals
 
-import re
 import os
 from watchdog.observers.api import BaseObserver
 from watchdog.observers.api import ObservedWatch
 from polling_local import LocalPoller
 from polling_xbmc import VFSPoller
-from utils import encode_path
+from utils import encode_path, is_url
 
 
 try:
@@ -59,7 +58,7 @@ def select_emitter(path):
     import settings
     from utils import log
 
-    if re.match(r'^[A-z]+://', path) and xbmcvfs.exists(path):
+    if is_url(path) and xbmcvfs.exists(path):
         return path, VFSPoller
 
     if os.path.exists(encode_path(path)):
