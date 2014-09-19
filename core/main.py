@@ -110,7 +110,7 @@ class EventHandler(FileSystemEventHandler):
         self.supported_media = '|' + xbmc.getSupportedMedia(library).decode('utf-8') + '|'
 
     def on_created(self, event):
-        if not self._can_skip(event, event.src_path):
+        if not event.is_directory and not self._can_skip(event, event.src_path):
             # TODO: remove this hack when fixed in xbmc
             if settings.FORCE_GLOBAL_SCAN and self.library == 'video':
                 self.xbmcif.queue_scan(self.library)
@@ -118,7 +118,7 @@ class EventHandler(FileSystemEventHandler):
                 self.xbmcif.queue_scan(self.library, self.path)
 
     def on_deleted(self, event):
-        if settings.CLEAN and not self._can_skip(event, event.src_path):
+        if settings.CLEAN and not event.is_directory and not self._can_skip(event, event.src_path):
             self.xbmcif.queue_clean(self.library)
 
     def on_moved(self, event):
