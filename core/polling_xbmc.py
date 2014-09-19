@@ -19,7 +19,8 @@ from __future__ import unicode_literals
 
 import xbmcvfs
 import settings
-from polling import PollerBase, FileSnapshot, MtimeSnapshot, hidden
+from functools import partial
+from polling import Poller, PollerNonRecursive, file_list_from_walk, hidden
 
 
 def _walk(path):
@@ -32,20 +33,28 @@ def _walk(path):
             yield dirs, files
 
 
+def _list_files(path):
+    dirs, files = xbmcvfs.listdir(path)
+    return [path + '/' + f.decode('utf-8') for f in files if not hidden(f)]
+
+
 def _get_mtime(path):
     return xbmcvfs.Stat(path).st_mtime()
 
 
-class VFSPoller(PollerBase):
+class _Recursive(Poller):
     polling_interval = settings.POLLING_INTERVAL
-    recursive = settings.RECURSIVE
-
-    def _take_snapshot(self):
-        if self.recursive:
-            return FileSnapshot(self.watch.path, _walk)
-        return MtimeSnapshot(self.watch.path, _get_mtime)
+    list_files = partial(file_list_from_walk(_walk))
 
     def is_offline(self):
         # Since path is always a media source, it's unlikely the user would
         # delete it. Assume it's offline if it doesn't exist.
         return not xbmcvfs.exists(self.watch.path)
+
+
+class _NonRecursive(PollerNonRecursive):
+    polling_interval = 1
+    list_files = partial(_list_files)
+    get_mtime = partial(_get_mtime)
+
+VFSPoller = _Recursive if settings.RECURSIVE else _NonRecursive

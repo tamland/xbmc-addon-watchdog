@@ -18,9 +18,9 @@
 from __future__ import unicode_literals
 
 import xbmc
-from watchdog.observers.api import EventEmitter
-from watchdog.events import DirDeletedEvent, DirCreatedEvent, FileCreatedEvent, FileDeletedEvent
 import settings
+from watchdog.observers.api import EventEmitter
+from watchdog.events import FileCreatedEvent, FileDeletedEvent
 
 
 def _paused():
@@ -31,46 +31,39 @@ def hidden(path):
     return path.startswith(b'.') or path.startswith(b'_UNPACK')
 
 
-class MtimeSnapshot(object):
-    def __init__(self, root, get_mtime):
-        self._root = root
-        self._mtime = get_mtime(root)
-
-    def diff(self, other):
-        modified = [self._root] if self._mtime != other._mtime else []
-        return [], [], modified
+def file_diff(old, current):
+    created = current - old
+    deleted = old - current
+    return created, deleted
 
 
-class FileSnapshot(object):
-    def __init__(self, root, walker):
-        self._files = set()
-        for dirs, files in walker(root):
-            self._files.update(files)
-
-    def diff(self, other):
-        created = other._files - self._files
-        deleted = self._files - other._files
-        return created, deleted, []
+def file_list_from_walk(walker):
+    def f(path):
+        ret = []
+        for dirs, files in walker(path):
+            ret.extend(files)
+        return ret
+    return f
 
 
-class _PollerType(type):
-    def __str__(self):
-        return "%s(recursive=%s, interval=%d)" % (
-            self.__name__, self.recursive, self.polling_interval)
-
-
-class PollerBase(EventEmitter):
-    __metaclass__ = _PollerType
+class Poller(EventEmitter):
     polling_interval = -1
-    recursive = True
+    list_files = None
 
     def __init__(self, event_queue, watch, timeout=1):
         EventEmitter.__init__(self, event_queue, watch, timeout)
         self._snapshot = None
 
-    def _take_snapshot(self):
-        """Take and return a snapshot of this emitters root path."""
-        pass
+    def take_snapshot(self):
+        """Take snapshot of this emitters root path and return changes."""
+        if self._snapshot is None:
+            self._snapshot = set(self.list_files(self.watch.path))
+            return [], []
+
+        new_snapshot = set(self.list_files(self.watch.path))
+        diff = file_diff(self._snapshot, new_snapshot)
+        self._snapshot = new_snapshot
+        return diff
 
     def is_offline(self):
         """Whether the file system this emitter is watching is offline."""
@@ -83,21 +76,37 @@ class PollerBase(EventEmitter):
             return
         if self.is_offline():
             return
-        if self._snapshot is None:
-            self._snapshot = self._take_snapshot()
-            return
 
-        new_snapshot = self._take_snapshot()
-        files_created, files_deleted, dirs_modified = self._snapshot.diff(new_snapshot)
-        self._snapshot = new_snapshot
+        files_created, files_deleted = self.take_snapshot()
 
         for path in files_created:
             self.queue_event(FileCreatedEvent(path))
         for path in files_deleted:
             self.queue_event(FileDeletedEvent(path))
 
-        # TODO: fix event handler and remove this
-        if dirs_modified:
-            self.queue_event(DirDeletedEvent(self.watch.path + '*'))
-        if dirs_modified:
-            self.queue_event(DirCreatedEvent(self.watch.path + '*'))
+
+class PollerNonRecursive(Poller):
+    get_mtime = None
+    list_files = None
+
+    def __init__(self, *args, **kwargs):
+        super(PollerNonRecursive, self).__init__(*args, **kwargs)
+        self._files = None
+        self._mtime = None
+
+    def take_snapshot(self):
+        if self._files is None:
+            self._mtime = self.get_mtime(self.watch.path)
+            self._files = set(self.list_files(self.watch.path))
+            return [], []
+
+        # Do fast check of mtime before listing directory
+        current_mtime = self.get_mtime(self.watch.path)
+        if current_mtime == self._mtime:
+            return [], []
+
+        current_files = set(self.list_files(self.watch.path))
+        diff = file_diff(self._files, current_files)
+        self._mtime = current_mtime
+        self._files = current_files
+        return diff

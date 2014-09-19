@@ -19,7 +19,8 @@ from __future__ import unicode_literals
 
 import os
 import settings
-from polling import PollerBase, FileSnapshot, MtimeSnapshot, hidden
+from functools import partial
+from polling import Poller, PollerNonRecursive, file_list_from_walk, hidden
 from utils import encode_path, decode_path
 
 
@@ -35,15 +36,24 @@ def _walk(path):
             yield dirs, files
 
 
+def _list_files(root):
+    root = encode_path(root)
+    paths = [os.path.join(root, name) for name in os.listdir(root) if not hidden(name)]
+    return [decode_path(path) for path in paths if not os.path.isdir(path)]
+
+
 def _get_mtime(path):
     return os.stat(encode_path(path)).st_mtime
 
 
-class LocalPoller(PollerBase):
+class _Recursive(Poller):
     polling_interval = 1
-    recursive = settings.RECURSIVE
+    list_files = partial(file_list_from_walk(_walk))
 
-    def _take_snapshot(self):
-        if self.recursive:
-            return FileSnapshot(self.watch.path, _walk)
-        return MtimeSnapshot(self.watch.path, _get_mtime)
+
+class _NonRecursive(PollerNonRecursive):
+    polling_interval = 1
+    list_files = partial(_list_files)
+    get_mtime = partial(_get_mtime)
+
+LocalPoller = _Recursive if settings.RECURSIVE else _NonRecursive
