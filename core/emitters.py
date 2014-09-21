@@ -41,6 +41,10 @@ class MultiEmitterObserver(BaseObserver):
     def __init__(self):
         BaseObserver.__init__(self, None)
 
+    @property
+    def paths(self):
+        return [w.path for w in self._watches]
+
     def schedule(self, event_handler, path, emitter_cls=None):
         with self._lock:
             watch = ObservedWatch(path, True)

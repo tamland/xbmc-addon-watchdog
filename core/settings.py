@@ -30,7 +30,7 @@ SCAN_DELAY = int("0"+ADDON.getSetting('delay')) or 1
 STARTUP_DELAY = int("0"+ADDON.getSetting('startupdelay'))
 PAUSE_ON_PLAYBACK = ADDON.getSetting('pauseonplayback') == 'true'
 FORCE_GLOBAL_SCAN = ADDON.getSetting('forceglobalscan') == 'true'
-SHOW_NOTIFICATIONS = ADDON.getSetting('notifications') == 'true'
+SHOW_STATUS_DIALOG = ADDON.getSetting('showstatusdialog') == 'true'
 CLEAN_ON_START = ADDON.getSetting('cleanonstart') == 'true'
 SCAN_ON_START = ADDON.getSetting('scanonstart') == 'true'
 PER_FILE_REMOVE = ADDON.getSetting('perfileremove') == 'true'

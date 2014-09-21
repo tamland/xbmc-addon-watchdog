@@ -27,7 +27,7 @@ import utils
 import settings
 import emitters
 import videolibrary
-from utils import escape_param, log, notify
+from utils import escape_param, log
 from itertools import repeat
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.compat import Event
@@ -187,9 +187,6 @@ def main():
     sources.extend(zip(repeat('music'), music_sources))
     log("music sources %s" % music_sources)
 
-    if not sources:
-        notify("Nothing to watch", "No media source found")
-
     xbmcif = XBMCIF()
     if settings.CLEAN_ON_START:
         if video_sources:
@@ -212,7 +209,6 @@ def main():
             emitter_cls = emitters.select_emitter(path)
         except IOError:
             log("not watching <%s>. does not exist" % path)
-            notify("Could not find path", path)
             continue
         finally:
             if xbmc.abortRequested:
@@ -225,7 +221,6 @@ def main():
         except Exception:
             traceback.print_exc()
             log("failed to watch <%s>" % path)
-            notify("Failed to watch %s" % path, "See log for details")
         finally:
             if xbmc.abortRequested:
                 break
@@ -233,6 +228,14 @@ def main():
     xbmcif.start()
     progress.close()
     log("initialization done")
+
+    if settings.SHOW_STATUS_DIALOG:
+        watching = ["Watching '%s'" % path for _, path in sources
+                    if path in observer.paths]
+        not_watching = ["Not watching '%s'" % path for _, path in sources
+                        if path not in observer.paths]
+        dialog = xbmcgui.Dialog()
+        dialog.select('Watchdog status', watching + not_watching)
 
     while not xbmc.abortRequested:
         xbmc.sleep(100)

@@ -55,14 +55,6 @@ def escape_param(s):
     return '"' + escaped + '"'
 
 
-def notify(msg1, msg2):
-    import settings
-    if settings.SHOW_NOTIFICATIONS:
-        dialog = xbmcgui.Dialog()
-        dialog.notification("Watchdog: %s" % msg1, msg2,
-                            xbmcgui.NOTIFICATION_WARNING, 2000)
-
-
 def rpc(method, **params):
     params = json.dumps(params, encoding='utf-8')
     query = b'{"jsonrpc": "2.0", "method": "%s", "params": %s, "id": 1}' % (method, params)
