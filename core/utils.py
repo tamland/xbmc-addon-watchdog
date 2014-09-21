@@ -29,7 +29,7 @@ from threading import Condition
 
 def log(msg, level=xbmc.LOGDEBUG):
     import settings
-    xbmc.log((settings.ADDON_ID + ": " + msg).encode('utf-8', 'replace'), level)
+    xbmc.log(("[" + settings.ADDON_ID + "] " + msg).encode('utf-8', 'replace'), level)
 
 
 def encode_path(path):
