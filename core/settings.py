@@ -33,6 +33,7 @@ FORCE_GLOBAL_SCAN = ADDON.getSetting('forceglobalscan') == 'true'
 SHOW_NOTIFICATIONS = ADDON.getSetting('notifications') == 'true'
 CLEAN_ON_START = ADDON.getSetting('cleanonstart') == 'true'
 SCAN_ON_START = ADDON.getSetting('scanonstart') == 'true'
+PER_FILE_REMOVE = ADDON.getSetting('perfileremove') == 'true'
 
 
 if ADDON.getSetting('watchvideo') == 'true':

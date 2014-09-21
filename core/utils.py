@@ -27,9 +27,9 @@ from urllib import unquote
 from threading import Condition
 
 
-def log(msg):
+def log(msg, level=xbmc.LOGDEBUG):
     import settings
-    xbmc.log((settings.ADDON_ID + ": " + msg).encode('utf-8', 'replace'), xbmc.LOGDEBUG)
+    xbmc.log((settings.ADDON_ID + ": " + msg).encode('utf-8', 'replace'), level)
 
 
 def encode_path(path):

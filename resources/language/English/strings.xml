@@ -42,5 +42,6 @@
     <string id="30049">Poll recursively</string>
     <string id="30050">Clean on startup</string>
     <string id="30051">Scan on startup</string>
+    <string id="30052">Remove files directly without cleaning entire library (experimental)</string>
 </strings>
 

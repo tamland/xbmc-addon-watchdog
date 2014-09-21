@@ -26,6 +26,7 @@ import xbmcgui
 import utils
 import settings
 import emitters
+import videolibrary
 from utils import escape_param, log, notify
 from itertools import repeat
 from watchdog.events import FileSystemEventHandler
@@ -56,6 +57,12 @@ class XBMCIF(threading.Thread):
 
     def queue_clean(self, library):
         self._cmd_queue.put("CleanLibrary(%s)" % library)
+
+    def queue_remove(self, library, path=None):
+        if settings.PER_FILE_REMOVE and path and library == 'video':
+            videolibrary.remove_video(path)
+        else:
+            self._cmd_queue.put("CleanLibrary(%s)" % library)
 
     def run(self):
         player = xbmc.Player()
@@ -119,7 +126,7 @@ class EventHandler(FileSystemEventHandler):
 
     def on_deleted(self, event):
         if settings.CLEAN and not event.is_directory and not self._can_skip(event, event.src_path):
-            self.xbmcif.queue_clean(self.library)
+            self.xbmcif.queue_remove(self.library, event.src_path)
 
     def on_moved(self, event):
         self.on_deleted(event)
