@@ -138,7 +138,7 @@ class EventHandler(FileSystemEventHandler):
                 self.xbmcif.queue_scan(self.library, self.path)
 
     def on_any_event(self, event):
-        log("<%s> <%s>" % (event.event_type, event.src_path))
+        log("[event] <%s> <%r>" % (event.event_type, event.src_path))
 
     def _is_hidden(self, path):
         sep = '/' if utils.is_url(self.path) else os.sep
@@ -152,13 +152,13 @@ class EventHandler(FileSystemEventHandler):
         if not path:
             return False
         if self._is_hidden(path):
-            log("skipping <%s> <%s>" % (event.event_type, path))
+            log("[event] skipping <%s> <%r>" % (event.event_type, path))
             return True
         if not event.is_directory:
             _, ext = os.path.splitext(path)
             ext = ext.lower()
             if self.supported_media.find('|%s|' % ext) == -1:
-                log("skipping <%s> <%s>" % (event.event_type, path))
+                log("[event] skipping <%s> <%r>" % (event.event_type, path))
                 return True
         return False
 
