@@ -59,15 +59,15 @@ def select_emitter(path):
     from utils import log
 
     if is_url(path) and xbmcvfs.exists(path):
-        return path, VFSPoller
+        return VFSPoller
 
     if os.path.exists(encode_path(path)):
         if settings.POLLING:
-            return path, LocalPoller
+            return LocalPoller
         if _is_remote_filesystem(path):
             log("select_observer: path <%s> identified as remote filesystem" % path)
-            return path, LocalPoller
-        return path, NativeEmitter
+            return LocalPoller
+        return NativeEmitter
 
     raise IOError("No such directory: '%s'" % path)
 

@@ -209,7 +209,7 @@ def main():
     for i, (libtype, path) in enumerate(sources):
         progress.update((i+1)/len(sources)*100, message="Setting up %s" % path)
         try:
-            fs_path, emitter_cls = emitters.select_emitter(path)
+            emitter_cls = emitters.select_emitter(path)
         except IOError:
             log("not watching <%s>. does not exist" % path)
             notify("Could not find path", path)
@@ -220,7 +220,7 @@ def main():
 
         eh = EventHandler(libtype, path, xbmcif)
         try:
-            observer.schedule(eh, path=fs_path, emitter_cls=emitter_cls)
+            observer.schedule(eh, path=path, emitter_cls=emitter_cls)
             log("watching <%s> using %s" % (path, emitter_cls))
         except Exception:
             traceback.print_exc()
