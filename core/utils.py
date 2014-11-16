@@ -22,7 +22,7 @@ import re
 import sys
 import xbmc
 import xbmcgui
-import simplejson as json
+import json
 from urllib import unquote
 from threading import Condition
 

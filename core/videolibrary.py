@@ -19,7 +19,7 @@ from __future__ import unicode_literals
 
 import os
 import xbmc
-import simplejson as json
+import json
 import time
 from utils import is_url, rpc, log
 
