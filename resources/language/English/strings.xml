@@ -4,7 +4,7 @@
     <string id="30002">Advanced</string>
     <string id="30003"></string>
     <string id="30004"></string>
-    <string id="30005">Clean library when files are moved or deleted</string>
+    <string id="30005"></string>
     <string id="30006"></string>
     <string id="30007">Auto</string>
     <string id="30008">Polling</string>
@@ -42,7 +42,10 @@
     <string id="30049">Poll recursively</string>
     <string id="30050">Clean on startup</string>
     <string id="30051">Scan on startup</string>
-    <string id="30052">Remove videos directly without cleaning entire library (experimental)</string>
+    <string id="30052">Removal method</string>
     <string id="30053">Show status dialog on startup</string>
+    <string id="30054">Remove the deleted video</string>
+    <string id="30055">Clean entire library</string>
+    <string id="30056">Remove from library when files are removed</string>
 </strings>
 

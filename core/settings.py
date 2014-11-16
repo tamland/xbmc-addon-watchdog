@@ -22,7 +22,7 @@ import utils
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id').decode('utf-8')
-CLEAN = ADDON.getSetting('clean') == 'true'
+REMOVAL_ENABLED = ADDON.getSetting('clean') == 'true'
 POLLING = int(ADDON.getSetting('method'))
 POLLING_INTERVAL = int("0"+ADDON.getSetting('pollinginterval')) or 4
 RECURSIVE = ADDON.getSetting('recursivepolling') == 'true'
@@ -33,7 +33,7 @@ FORCE_GLOBAL_SCAN = ADDON.getSetting('forceglobalscan') == 'true'
 SHOW_STATUS_DIALOG = ADDON.getSetting('showstatusdialog') == 'true'
 CLEAN_ON_START = ADDON.getSetting('cleanonstart') == 'true'
 SCAN_ON_START = ADDON.getSetting('scanonstart') == 'true'
-PER_FILE_REMOVE = ADDON.getSetting('perfileremove') == 'true'
+PER_FILE_REMOVE = int(ADDON.getSetting('removalmethod')) == 0
 
 
 if ADDON.getSetting('watchvideo') == 'true':

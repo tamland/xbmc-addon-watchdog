@@ -59,10 +59,11 @@ class XBMCIF(threading.Thread):
         self._cmd_queue.put("CleanLibrary(%s)" % library)
 
     def queue_remove(self, library, path=None):
-        if settings.PER_FILE_REMOVE and path and library == 'video':
-            videolibrary.remove_video(path)
-        else:
-            self._cmd_queue.put("CleanLibrary(%s)" % library)
+        if settings.REMOVAL_ENABLED:
+            if settings.PER_FILE_REMOVE and path and library == 'video':
+                videolibrary.remove_video(path)
+            else:
+                self._cmd_queue.put("CleanLibrary(%s)" % library)
 
     def run(self):
         player = xbmc.Player()
@@ -125,7 +126,7 @@ class EventHandler(FileSystemEventHandler):
                 self.xbmcif.queue_scan(self.library, self.path)
 
     def on_deleted(self, event):
-        if settings.CLEAN and not event.is_directory and not self._can_skip(event, event.src_path):
+        if not event.is_directory and not self._can_skip(event, event.src_path):
             self.xbmcif.queue_remove(self.library, event.src_path)
 
     def on_moved(self, event):
