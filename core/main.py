@@ -237,8 +237,12 @@ def main():
         dialog = xbmcgui.Dialog()
         dialog.select('Watchdog status', watching + not_watching)
 
-    while not xbmc.abortRequested:
-        xbmc.sleep(100)
+    if xbmc.__version__ >= '2.19.0':
+        monitor = xbmc.Monitor()
+        monitor.waitForAbort()
+    else:
+        while not xbmc.abortRequested:
+            xbmc.sleep(100)
 
     log("stopping..")
     observer.stop()
