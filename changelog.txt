@@ -1,5 +1,5 @@
-[B]0.9.0[/B]
-- videos are now removed in background without cleaning entire library (can be reverted in settings)
+[B]0.9.1[/B]
+- added option for removing videos directly without cleaning entire library
 - added option for cleaning/scanning library on startup
 - added option for showing status dialog on startup (for easy debugging)
 - improved skipping of non-media files, reducing number of library scans needed
