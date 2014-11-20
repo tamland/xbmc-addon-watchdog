@@ -33,7 +33,7 @@ FORCE_GLOBAL_SCAN = ADDON.getSetting('forceglobalscan') == 'true'
 SHOW_STATUS_DIALOG = ADDON.getSetting('showstatusdialog') == 'true'
 CLEAN_ON_START = ADDON.getSetting('cleanonstart') == 'true'
 SCAN_ON_START = ADDON.getSetting('scanonstart') == 'true'
-PER_FILE_REMOVE = int(ADDON.getSetting('removalmethod')) == 0
+PER_FILE_REMOVE = int(ADDON.getSetting('removalmethod')) == 1
 
 
 if ADDON.getSetting('watchvideo') == 'true':

@@ -27,7 +27,7 @@
     </category>
     <category label="30002">
         <setting label="30045" id="method" type="select" lvalues="30007|30008" default="0"/>
-        <setting label="30052" id="removalmethod" type="select" lvalues="30054|30055" default="0"/>
+        <setting label="30052" id="removalmethod" type="select" lvalues="30055|30054" default="0"/>
         <setting label="30046" id="pollinginterval" type="number" default="4"/>
         <setting label="30049" id="recursivepolling" type="bool" default="true"/>
         <setting label="30043" id="delay" type="number" default="1"/>
